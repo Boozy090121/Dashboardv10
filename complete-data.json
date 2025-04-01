@@ -25,6 +25,14 @@
       { "month": "Apr", "recordRFT": 91.5, "lotRFT": 92.3 },
       { "month": "May", "recordRFT": 92.3, "lotRFT": 93.5 },
       { "month": "Jun", "recordRFT": 93.1, "lotRFT": 94.0 }
+    ],
+    "rftByMonth": [
+      { "month": "Jan", "value": 90.2 },
+      { "month": "Feb", "value": 91.4 },
+      { "month": "Mar", "value": 92.8 },
+      { "month": "Apr", "value": 91.5 },
+      { "month": "May", "value": 92.3 },
+      { "month": "Jun", "value": 93.1 }
     ]
   },
   "processMetrics": {
@@ -50,7 +58,28 @@
       { "month": "2025-04", "averageCycleTime": 22.3 },
       { "month": "2025-05", "averageCycleTime": 21.9 },
       { "month": "2025-06", "averageCycleTime": 21.8 }
-    ]
+    ],
+    "cycleTimes": {
+      "rawData": [
+        { "lotId": "L001", "timestamp": "2023-01-15", "cycleTime": 22.3 },
+        { "lotId": "L002", "timestamp": "2023-01-22", "cycleTime": 23.1 },
+        { "lotId": "L003", "timestamp": "2023-02-05", "cycleTime": 21.8 },
+        { "lotId": "L004", "timestamp": "2023-02-15", "cycleTime": 20.5 },
+        { "lotId": "L005", "timestamp": "2023-03-01", "cycleTime": 19.7 },
+        { "lotId": "L006", "timestamp": "2023-03-15", "cycleTime": 18.9 },
+        { "lotId": "L007", "timestamp": "2023-04-01", "cycleTime": 18.2 },
+        { "lotId": "L008", "timestamp": "2023-04-15", "cycleTime": 17.5 },
+        { "lotId": "L009", "timestamp": "2023-05-01", "cycleTime": 16.8 },
+        { "lotId": "L010", "timestamp": "2023-05-15", "cycleTime": 16.2 }
+      ],
+      "statistics": {
+        "ucl": 24.5,
+        "lcl": 15.5,
+        "mean": 19.5,
+        "sigma": 1.5,
+        "target": 18.0
+      }
+    }
   },
   "internalRFT": {
     "departmentPerformance": [
@@ -58,7 +87,23 @@
       { "department": "Quality", "rftRate": 95.4, "pass": 248, "fail": 12 },
       { "department": "Packaging", "rftRate": 91.2, "pass": 187, "fail": 18 },
       { "department": "Logistics", "rftRate": 86.7, "pass": 156, "fail": 24 }
-    ]
+    ],
+    "detailedAnalysis": {
+      "departmentByMonth": [
+        { "month": "Jan", "Production": 91.2, "Quality": 93.5, "Packaging": 89.8, "Logistics": 84.3 },
+        { "month": "Feb", "Production": 91.8, "Quality": 94.0, "Packaging": 90.1, "Logistics": 84.9 },
+        { "month": "Mar", "Production": 92.4, "Quality": 94.5, "Packaging": 90.5, "Logistics": 85.5 },
+        { "month": "Apr", "Production": 93.0, "Quality": 94.9, "Packaging": 90.8, "Logistics": 86.0 },
+        { "month": "May", "Production": 93.4, "Quality": 95.2, "Packaging": 91.0, "Logistics": 86.3 },
+        { "month": "Jun", "Production": 93.7, "Quality": 95.4, "Packaging": 91.2, "Logistics": 86.7 }
+      ],
+      "errorTypes": [
+        { "department": "Production", "Documentation": 10, "Process": 6, "Equipment": 4, "Material": 2 },
+        { "department": "Quality", "Documentation": 6, "Process": 3, "Equipment": 2, "Material": 1 },
+        { "department": "Packaging", "Documentation": 8, "Process": 5, "Equipment": 3, "Material": 2 },
+        { "department": "Logistics", "Documentation": 12, "Process": 6, "Equipment": 4, "Material": 2 }
+      ]
+    }
   },
   "externalRFT": {
     "records": [
@@ -83,7 +128,18 @@
       "Labeling issues constitute 45% of all customer complaints",
       "Average resolution time has decreased by 20% this quarter",
       "Customer satisfaction rate for resolved issues is 87%"
-    ]
+    ],
+    "sentimentAnalysis": {
+      "overall": { "positive": 25, "neutral": 35, "negative": 40 },
+      "byMonth": [
+        { "month": "Jan", "positive": 20, "neutral": 40, "negative": 40 },
+        { "month": "Feb", "positive": 22, "neutral": 38, "negative": 40 },
+        { "month": "Mar", "positive": 23, "neutral": 37, "negative": 40 },
+        { "month": "Apr", "positive": 24, "neutral": 36, "negative": 40 },
+        { "month": "May", "positive": 25, "neutral": 35, "negative": 40 },
+        { "month": "Jun", "positive": 25, "neutral": 35, "negative": 40 }
+      ]
+    }
   },
   "commercialProcess": {
     "records": [
@@ -108,7 +164,144 @@
       "Quality control stage accounts for 40% of the total process time",
       "Deviations occur most frequently during the filling stage",
       "Process efficiency has improved by 15% since last quarter"
+    ],
+    "cycleTimeData": {
+      "targetTime": 10.5,
+      "stagesData": [
+        { "name": "Assembly", "target": 3.0, "actual": 3.5, "min": 2.8, "max": 4.2 },
+        { "name": "Quality Control", "target": 2.5, "actual": 2.8, "min": 2.2, "max": 3.5 },
+        { "name": "Packaging", "target": 2.0, "actual": 2.4, "min": 1.8, "max": 3.0 },
+        { "name": "Final Review", "target": 1.5, "actual": 1.8, "min": 1.3, "max": 2.5 }
+      ],
+      "trendData": [
+        { "month": "Jan", "value": 12.5 },
+        { "month": "Feb", "value": 12.1 },
+        { "month": "Mar", "value": 11.7 },
+        { "month": "Apr", "value": 11.3 },
+        { "month": "May", "value": 10.9 },
+        { "month": "Jun", "value": 10.5 }
+      ]
+    }
+  },
+  "lotCorrelation": {
+    "flowData": [
+      { "source": "Bulk Receipt", "target": "Assembly", "value": 78 },
+      { "source": "Assembly", "target": "PCI Review", "value": 76 },
+      { "source": "PCI Review", "target": "NN Review", "value": 75 },
+      { "source": "NN Review", "target": "Packaging", "value": 74 },
+      { "source": "Packaging", "target": "Final Review", "value": 73 },
+      { "source": "Final Review", "target": "Release", "value": 72 }
+    ],
+    "cycleTimeMatrix": [
+      { "stage": "Bulk Receipt", "min": 0.9, "avg": 1.2, "max": 1.5, "target": 1.0 },
+      { "stage": "Assembly", "min": 2.8, "avg": 3.5, "max": 4.2, "target": 3.0 },
+      { "stage": "PCI Review", "min": 2.5, "avg": 3.2, "max": 3.9, "target": 2.8 },
+      { "stage": "NN Review", "min": 2.3, "avg": 3.0, "max": 3.7, "target": 2.5 },
+      { "stage": "Packaging", "min": 1.9, "avg": 2.4, "max": 2.9, "target": 2.0 },
+      { "stage": "Final Review", "min": 1.4, "avg": 1.8, "max": 2.2, "target": 1.5 },
+      { "stage": "Release", "min": 0.8, "avg": 1.0, "max": 1.2, "target": 1.0 }
+    ],
+    "errorPropagation": [
+      { "sourceStage": "Bulk Receipt", "errorType": "Documentation", "count": 8, "propagatedToStages": ["Assembly", "PCI Review"] },
+      { "sourceStage": "Assembly", "errorType": "Process Deviation", "count": 12, "propagatedToStages": ["PCI Review", "NN Review"] },
+      { "sourceStage": "PCI Review", "errorType": "Documentation", "count": 6, "propagatedToStages": ["NN Review"] },
+      { "sourceStage": "NN Review", "errorType": "Process Deviation", "count": 4, "propagatedToStages": ["Packaging"] },
+      { "sourceStage": "Packaging", "errorType": "Equipment Issue", "count": 5, "propagatedToStages": ["Final Review"] }
     ]
+  },
+  "enhancedVisualizations": {
+    "spcChartData": {
+      "ucl": 95.5,
+      "lcl": 89.5,
+      "mean": 92.5,
+      "target": 95.0,
+      "points": [
+        { "date": "2023-01-01", "value": 90.2, "inControl": true },
+        { "date": "2023-01-08", "value": 90.8, "inControl": true },
+        { "date": "2023-01-15", "value": 91.4, "inControl": true },
+        { "date": "2023-01-22", "value": 91.8, "inControl": true },
+        { "date": "2023-01-29", "value": 92.2, "inControl": true },
+        { "date": "2023-02-05", "value": 92.5, "inControl": true },
+        { "date": "2023-02-12", "value": 92.8, "inControl": true },
+        { "date": "2023-02-19", "value": 92.6, "inControl": true },
+        { "date": "2023-02-26", "value": 92.3, "inControl": true },
+        { "date": "2023-03-05", "value": 92.0, "inControl": true },
+        { "date": "2023-03-12", "value": 92.8, "inControl": true },
+        { "date": "2023-03-19", "value": 93.5, "inControl": true },
+        { "date": "2023-03-26", "value": 94.2, "inControl": true },
+        { "date": "2023-04-02", "value": 94.8, "inControl": true },
+        { "date": "2023-04-09", "value": 94.5, "inControl": true },
+        { "date": "2023-04-16", "value": 94.2, "inControl": true },
+        { "date": "2023-04-23", "value": 93.8, "inControl": true },
+        { "date": "2023-04-30", "value": 93.5, "inControl": true },
+        { "date": "2023-05-07", "value": 93.2, "inControl": true },
+        { "date": "2023-05-14", "value": 93.0, "inControl": true },
+        { "date": "2023-05-21", "value": 92.8, "inControl": true },
+        { "date": "2023-05-28", "value": 93.0, "inControl": true },
+        { "date": "2023-06-04", "value": 93.2, "inControl": true },
+        { "date": "2023-06-11", "value": 93.4, "inControl": true }
+      ]
+    },
+    "paretoAnalysis": {
+      "categories": [
+        { "name": "Documentation Error", "count": 42, "percentage": 43.8, "cumulative": 43.8 },
+        { "name": "Process Deviation", "count": 28, "percentage": 29.2, "cumulative": 72.9 },
+        { "name": "Equipment Issue", "count": 15, "percentage": 15.6, "cumulative": 88.5 },
+        { "name": "Material Issue", "count": 11, "percentage": 11.5, "cumulative": 100.0 }
+      ]
+    },
+    "correlationMatrix": {
+      "variables": ["Assembly Time", "Review Time", "Package Time", "Defect Rate", "Cycle Time"],
+      "data": [
+        [1.00, 0.65, 0.45, 0.72, 0.84],
+        [0.65, 1.00, 0.38, 0.58, 0.76],
+        [0.45, 0.38, 1.00, 0.52, 0.67],
+        [0.72, 0.58, 0.52, 1.00, 0.78],
+        [0.84, 0.76, 0.67, 0.78, 1.00]
+      ]
+    },
+    "riskHeatmap": {
+      "rows": ["Documentation", "Process", "Equipment", "Material"],
+      "columns": ["Low Impact", "Medium Impact", "High Impact", "Critical Impact"],
+      "data": [
+        [2, 8, 25, 7],
+        [5, 12, 8, 3],
+        [9, 4, 2, 0],
+        [6, 3, 2, 0]
+      ]
+    }
+  },
+  "historicalAnalysis": {
+    "yearOverYear": {
+      "metrics": ["RFT Rate", "Cycle Time", "Deviations", "Customer Complaints"],
+      "currentYear": [92.3, 21.8, 26, 18],
+      "previousYear": [88.5, 24.7, 35, 25],
+      "percentageChange": [4.3, -11.7, -25.7, -28.0]
+    },
+    "trendStability": {
+      "rftRate": {
+        "periods": ["Q1 2022", "Q2 2022", "Q3 2022", "Q4 2022", "Q1 2023", "Q2 2023"],
+        "values": [87.5, 88.2, 88.9, 89.8, 91.5, 92.3],
+        "trend": "upward",
+        "stability": "stable",
+        "seasonalityImpact": "low"
+      },
+      "cycleTime": {
+        "periods": ["Q1 2022", "Q2 2022", "Q3 2022", "Q4 2022", "Q1 2023", "Q2 2023"],
+        "values": [25.8, 25.2, 24.5, 23.7, 22.5, 21.8],
+        "trend": "downward",
+        "stability": "stable",
+        "seasonalityImpact": "low"
+      }
+    },
+    "performanceTracking": {
+      "kpis": [
+        { "name": "RFT Rate", "target": 95.0, "current": 92.3, "trend": "improving", "status": "on track" },
+        { "name": "Cycle Time", "target": 18.0, "current": 21.8, "trend": "improving", "status": "needs attention" },
+        { "name": "Customer Complaints", "target": 15, "current": 18, "trend": "improving", "status": "needs attention" },
+        { "name": "Documentation Errors", "target": 30, "current": 42, "trend": "static", "status": "at risk" }
+      ]
+    }
   },
   "lastUpdated": "2023-06-15T12:00:00.000Z",
   "dataVersion": "1.0.0",
