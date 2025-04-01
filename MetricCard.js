@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 
 /**
  * MetricCard component displays a standardized metric visualization with trends and goals
@@ -22,74 +22,117 @@ const MetricCard = ({
   const [showTooltip, setShowTooltip] = useState(false);
   
   const formatValue = (val) => {
-    if (val === undefined || val === null) return '-';
-    if (percentage) return val.toFixed(1) + '%';
-    return val.toLocaleString();
+    if (val === undefined || val === null) {
+      console.log('Formatting undefined/null value');
+      return '-';
+    }
+    if (percentage) {
+      console.log('Formatting percentage value:', val);
+      return Number(val).toFixed(1) + '%';
+    }
+    console.log('Formatting numeric value:', val);
+    return Number(val).toLocaleString();
   };
   
   const calculateTrendPercentage = () => {
-    if (!previousValue || previousValue === 0) return 0;
+    console.log('Calculating trend percentage:', { value, previousValue });
+    if (!previousValue || previousValue === 0 || !value) {
+      console.log('Cannot calculate trend percentage - missing or zero values');
+      return 0;
+    }
     const change = ((value - previousValue) / previousValue) * 100;
+    console.log('Calculated trend percentage:', change);
     return change.toFixed(1);
   };
 
   const trendPercentage = calculateTrendPercentage();
+  console.log('Final trend percentage:', trendPercentage);
   
   // Define trend indicators and their styling
   const getTrendIndicator = () => {
+    console.log('Getting trend indicator for:', trend);
     if (trend === 'up') {
       return {
         icon: '↑',
-        className: 'text-green-500',
+        className: 'trend-up',
         ariaLabel: 'Increasing'
       };
     } else if (trend === 'down') {
       return {
         icon: '↓',
-        className: 'text-red-500',
+        className: 'trend-down',
         ariaLabel: 'Decreasing'
       };
     } else {
       return {
         icon: '–',
-        className: 'text-gray-400',
+        className: 'trend-neutral',
         ariaLabel: 'No change'
       };
     }
   };
   
   const trendIndicator = getTrendIndicator();
+  console.log('Trend indicator:', trendIndicator);
 
   // Status border styling
   const getStatusClass = () => {
+    console.log('Getting status class for:', status);
     switch(status) {
       case 'success':
-        return 'border-l-4 border-success';
+        return 'status-success';
       case 'warning':
-        return 'border-l-4 border-warning';
+        return 'status-warning';
       case 'critical':
-        return 'border-l-4 border-error';
+        return 'status-critical';
       default:
-        return 'border-l-4 border-transparent';
+        return 'status-normal';
     }
   };
 
   const toggleDetails = () => {
+    console.log('Toggling details:', !showDetailView);
     setShowDetailView(!showDetailView);
   };
 
   // Calculate goal percentage for progress bar
-  const goalPercentage = goal ? Math.min(100, (value / goal) * 100) : 0;
+  const goalPercentage = useMemo(() => {
+    console.log('Calculating goal percentage:', { value, goal });
+    if (!goal || !value) return 0;
+    const percentage = Math.min(100, (value / goal) * 100);
+    console.log('Calculated goal percentage:', percentage);
+    return percentage;
+  }, [value, goal]);
   
   // Calculate heights for mini chart bars
-  const maxTrendValue = trendData.length > 0 
-    ? Math.max(...trendData.map(item => item.value))
-    : 0;
+  const maxTrendValue = useMemo(() => {
+    console.log('Calculating max trend value from:', trendData);
+    if (!trendData || trendData.length === 0) return 0;
+    const max = Math.max(...trendData.map(item => item.value));
+    console.log('Max trend value:', max);
+    return max;
+  }, [trendData]);
     
-  const getBarHeight = (val) => {
-    if (maxTrendValue === 0) return '0%';
-    return `${Math.max(10, (val / maxTrendValue) * 100)}%`;
-  };
+  const getBarHeight = useCallback((val) => {
+    console.log('Calculating bar height for value:', val);
+    if (maxTrendValue === 0 || !val) return '0%';
+    const height = `${Math.max(10, (val / maxTrendValue) * 100)}%`;
+    console.log('Calculated bar height:', height);
+    return height;
+  }, [maxTrendValue]);
+
+  console.log('Rendering MetricCard:', {
+    title,
+    value,
+    previousValue,
+    trend,
+    percentage,
+    goal,
+    status,
+    showDetails,
+    hasDetailMetrics: detailMetrics?.length > 0,
+    hasTrendData: trendData?.length > 0
+  });
 
   return (
     <div className={`metric-card ${getStatusClass()}`}>
@@ -109,7 +152,10 @@ const MetricCard = ({
       {subtitle && <div className="metric-subtitle">{subtitle}</div>}
       
       <div className="metric-value-container">
-        <div className="metric-value" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+        <div className="metric-value" 
+          onMouseEnter={() => setShowTooltip(true)} 
+          onMouseLeave={() => setShowTooltip(false)}
+        >
           {formatValue(value)}
           {tooltip && showTooltip && (
             <div className="metric-tooltip">
@@ -118,7 +164,7 @@ const MetricCard = ({
           )}
         </div>
         
-        {previousValue !== undefined && (
+        {previousValue !== undefined && previousValue !== null && (
           <div className={`metric-trend ${trendIndicator.className}`}>
             <span className="trend-icon" aria-label={trendIndicator.ariaLabel}>{trendIndicator.icon}</span>
             <span className="trend-value">{Math.abs(trendPercentage)}%</span>
@@ -127,7 +173,7 @@ const MetricCard = ({
       </div>
       
       {/* Progress toward goal */}
-      {goal && (
+      {goal && value && (
         <div className="metric-goal">
           <div className="goal-bar-container">
             <div className="goal-bar-background">
@@ -145,24 +191,21 @@ const MetricCard = ({
       )}
       
       {/* Mini chart */}
-      {trendData.length > 0 && (
+      {trendData && trendData.length > 0 && (
         <div className="metric-mini-chart">
           {trendData.map((item, idx) => (
             <div 
               key={idx}
-              className="mini-chart-bar"
-              style={{ 
-                height: getBarHeight(item.value),
-                opacity: idx === trendData.length - 1 ? 1 : 0.6 + (idx * 0.1)
-              }}
-              title={`${item.label}: ${formatValue(item.value)}`}
+              className={`mini-chart-bar ${idx === trendData.length - 1 ? 'current' : ''}`}
+              style={{ height: getBarHeight(item.value) }}
+              title={`${item.label || ''}: ${formatValue(item.value)}`}
             ></div>
           ))}
         </div>
       )}
       
       {/* Detail metrics */}
-      {showDetails && showDetailView && detailMetrics.length > 0 && (
+      {showDetails && showDetailView && detailMetrics && detailMetrics.length > 0 && (
         <div className="metric-details">
           <div className="details-header">
             <h4>Details</h4>

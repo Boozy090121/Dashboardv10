@@ -31,11 +31,15 @@ const Dashboard = () => {
   // Memoize calculated values to prevent recalculations on re-render
   const metrics = useMemo(() => {
     console.log('Calculating metrics from data:', {
-      hasOverview: !!data?.overview,
-      overviewKeys: data?.overview ? Object.keys(data.overview) : []
+      hasData: !!data,
+      dataStructure: data ? Object.keys(data) : [],
+      overview: data?.overview,
+      overviewKeys: data?.overview ? Object.keys(data.overview) : [],
+      rawData: data
     });
     
     if (!data || !data.overview) {
+      console.log('No data or overview available for metrics calculation');
       return {
         totalRecords: 0,
         totalLots: 0,
@@ -44,7 +48,7 @@ const Dashboard = () => {
       };
     }
     
-    return {
+    const calculatedMetrics = {
       totalRecords: data.overview.totalRecords || 0,
       totalLots: data.overview.totalLots || 0,
       rftRate: data.overview.overallRFTRate || 0,
@@ -52,6 +56,9 @@ const Dashboard = () => {
         ? data.overview.issueDistribution.reduce((sum, item) => sum + item.value, 0) 
         : 0
     };
+    
+    console.log('Calculated metrics:', calculatedMetrics);
+    return calculatedMetrics;
   }, [data]);
   
   // Generate trend data for cycle time
@@ -243,7 +250,12 @@ const Dashboard = () => {
   console.log('Dashboard rendering with data');
   
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" style={{
+      padding: '24px',
+      maxWidth: '1400px',
+      margin: '0 auto',
+      width: '100%'
+    }}>
       {showNotice && (
         <div className="notification-banner" style={{
           background: 'linear-gradient(90deg, #1a73e8, #3498db)',
@@ -281,83 +293,93 @@ const Dashboard = () => {
       />
       
       {/* Metric cards */}
-      <div className="metrics-grid">
+      <div className="metrics-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '24px',
+        marginBottom: '24px',
+        width: '100%',
+        padding: '0 12px'
+      }}>
+        {console.log('Rendering metric cards with data:', metrics)}
+        
         <MetricCard
           title="Total Records"
-          value={data?.overview?.totalRecords || 1245}
-          previousValue={data?.overview?.totalRecords ? data.overview.totalRecords - 25 : 1220}
-          trend="up"
-          trendData={[
-            { value: 1190 },
-            { value: 1205 },
-            { value: 1215 },
-            { value: 1220 },
-            { value: 1235 },
-            { value: data?.overview?.totalRecords || 1245 }
-          ]}
-          showDetails={true}
-          detailMetrics={[
-            { label: 'Production', value: 458 },
-            { label: 'Quality', value: 326 },
-            { label: 'Packaging', value: 278 },
-            { label: 'Logistics', value: 183 }
-          ]}
+          value={metrics.totalRecords}
+          previousValue={metrics.totalRecords > 0 ? metrics.totalRecords - 25 : null}
+          trend={metrics.totalRecords > 0 ? "up" : "neutral"}
+          trendData={metrics.totalRecords > 0 ? [
+            { value: metrics.totalRecords - 55 },
+            { value: metrics.totalRecords - 40 },
+            { value: metrics.totalRecords - 30 },
+            { value: metrics.totalRecords - 25 },
+            { value: metrics.totalRecords - 10 },
+            { value: metrics.totalRecords }
+          ] : []}
+          showDetails={metrics.totalRecords > 0}
+          detailMetrics={metrics.totalRecords > 0 ? [
+            { label: 'Production', value: Math.floor(metrics.totalRecords * 0.37) },
+            { label: 'Quality', value: Math.floor(metrics.totalRecords * 0.26) },
+            { label: 'Packaging', value: Math.floor(metrics.totalRecords * 0.22) },
+            { label: 'Logistics', value: Math.floor(metrics.totalRecords * 0.15) }
+          ] : []}
         />
         
         <MetricCard
           title="Total Lots"
-          value={data?.overview?.totalLots || 78}
-          previousValue={data?.overview?.totalLots ? data.overview.totalLots - 2 : 76}
-          trend="up"
-          status={data?.overview?.totalLots > 80 ? 'warning' : 'normal'}
-          trendData={[
-            { value: 71 },
-            { value: 73 },
-            { value: 74 },
-            { value: 76 },
-            { value: 77 },
-            { value: data?.overview?.totalLots || 78 }
-          ]}
-          showDetails={true}
-          detailMetrics={[
-            { label: 'Released', value: 65 },
-            { label: 'In Process', value: 13 }
-          ]}
+          value={metrics.totalLots}
+          previousValue={metrics.totalLots > 0 ? metrics.totalLots - 2 : null}
+          trend={metrics.totalLots > 0 ? "up" : "neutral"}
+          status={metrics.totalLots > 80 ? 'warning' : 'normal'}
+          trendData={metrics.totalLots > 0 ? [
+            { value: metrics.totalLots - 7 },
+            { value: metrics.totalLots - 5 },
+            { value: metrics.totalLots - 4 },
+            { value: metrics.totalLots - 2 },
+            { value: metrics.totalLots - 1 },
+            { value: metrics.totalLots }
+          ] : []}
+          showDetails={metrics.totalLots > 0}
+          detailMetrics={metrics.totalLots > 0 ? [
+            { label: 'Released', value: Math.floor(metrics.totalLots * 0.83) },
+            { label: 'In Process', value: Math.floor(metrics.totalLots * 0.17) }
+          ] : []}
         />
         
         <MetricCard
           title="Overall RFT Rate"
-          value={data?.overview?.overallRFTRate || 92.3}
-          previousValue={data?.overview?.overallRFTRate ? data.overview.overallRFTRate - 1.5 : 90.8}
-          trend="up"
+          value={metrics.rftRate}
+          previousValue={metrics.rftRate > 0 ? metrics.rftRate - 1.5 : null}
+          trend={metrics.rftRate > 0 ? "up" : "neutral"}
           percentage={true}
           status={
-            (data?.overview?.overallRFTRate || 92.3) >= 95 ? 'success' : 
-            (data?.overview?.overallRFTRate || 92.3) >= 90 ? 'normal' :
-            (data?.overview?.overallRFTRate || 92.3) >= 85 ? 'warning' : 'critical'
+            metrics.rftRate >= 95 ? 'success' : 
+            metrics.rftRate >= 90 ? 'normal' :
+            metrics.rftRate >= 85 ? 'warning' : 'critical'
           }
           goal={95}
           goalLabel="Target RFT"
-          trendData={[
-            { value: 88.5 },
-            { value: 89.2 },
-            { value: 90.1 },
-            { value: 90.8 },
-            { value: 91.5 },
-            { value: data?.overview?.overallRFTRate || 92.3 }
-          ]}
-          showDetails={true}
-          detailMetrics={[
-            { label: 'Record Level', value: data?.overview?.overallRFTRate || 92.3 },
+          trendData={metrics.rftRate > 0 ? [
+            { value: metrics.rftRate - 3.8 },
+            { value: metrics.rftRate - 3.1 },
+            { value: metrics.rftRate - 2.2 },
+            { value: metrics.rftRate - 1.5 },
+            { value: metrics.rftRate - 0.8 },
+            { value: metrics.rftRate }
+          ] : []}
+          showDetails={metrics.rftRate > 0}
+          detailMetrics={metrics.rftRate > 0 ? [
+            { label: 'Record Level', value: metrics.rftRate },
             { label: 'Lot Level', value: data?.overview?.lotQuality?.percentage || 95.3 }
-          ]}
+          ] : []}
         />
         
         <MetricCard
           title="Avg. Cycle Time"
           value={data?.processMetrics?.totalCycleTime?.average || 21.8}
-          previousValue={data?.processMetrics?.totalCycleTime?.average ? data.processMetrics.totalCycleTime.average + 2.3 : 24.1}
-          trend="down"
+          previousValue={data?.processMetrics?.totalCycleTime?.average ? 
+            data.processMetrics.totalCycleTime.average + 2.3 : null}
+          trend={data?.processMetrics?.totalCycleTime?.average ? "down" : "neutral"}
           goal={data?.processMetrics?.totalCycleTime?.target || 18.0}
           goalLabel="Target Time"
           status={
@@ -366,11 +388,11 @@ const Dashboard = () => {
             (data?.processMetrics?.totalCycleTime?.average || 21.8) <= 25 ? 'warning' : 'critical'
           }
           trendData={cycleTimeTrendData}
-          showDetails={true}
-          detailMetrics={[
+          showDetails={!!data?.processMetrics?.totalCycleTime?.average}
+          detailMetrics={data?.processMetrics?.totalCycleTime?.average ? [
             { label: 'Min Observed', value: data?.processMetrics?.totalCycleTime?.minimum || 16.2 },
             { label: 'Max Observed', value: data?.processMetrics?.totalCycleTime?.maximum || 36.2 }
-          ]}
+          ] : []}
         />
       </div>
       
@@ -458,7 +480,12 @@ const Dashboard = () => {
       </DashboardGrid.Widget>
       
       {/* Charts grid */}
-      <DashboardGrid>
+      <div className="dashboard-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+        gap: '24px',
+        marginTop: '24px'
+      }}>
         <DashboardGrid.Widget
           title="RFT Performance"
           size="medium"
@@ -616,9 +643,42 @@ const Dashboard = () => {
             height={300}
           />
         </DashboardGrid.Widget>
-      </DashboardGrid>
+      </div>
       
-      {isLoading && <div className="overlay-loading">Refreshing...</div>}
+      {isLoading && (
+        <div className="overlay-loading" style={{
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          background: 'rgba(255, 255, 255, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: '1000'
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}>
+            <div className="loading-spinner" style={{
+              border: '4px solid rgba(0, 81, 138, 0.1)',
+              borderLeft: '4px solid #00518A',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <p style={{
+              marginTop: '12px',
+              color: '#374151',
+              fontSize: '14px'
+            }}>Refreshing...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

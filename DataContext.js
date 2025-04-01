@@ -41,7 +41,8 @@ export const DataProvider = ({ children }) => {
   const loadData = useCallback(async () => {
     console.log('Starting to load data...', {
       isMounted: isMountedRef.current,
-      hasExistingController: !!abortControllerRef.current
+      hasExistingController: !!abortControllerRef.current,
+      currentState: state
     });
     
     // If there's already a fetch in progress, abort it
@@ -93,7 +94,8 @@ export const DataProvider = ({ children }) => {
         hasData: !!data,
         topLevelKeys: Object.keys(data),
         overviewPresent: !!data?.overview,
-        overviewKeys: data?.overview ? Object.keys(data.overview) : []
+        overviewKeys: data?.overview ? Object.keys(data.overview) : [],
+        rawData: data
       });
       
       // Validate data structure
@@ -104,11 +106,22 @@ export const DataProvider = ({ children }) => {
       // Check if component is still mounted before updating state
       if (isMountedRef.current) {
         console.log('Updating state with new data');
-        setState({
-          isLoading: false,
-          error: null,
-          data,
-          lastUpdated: new Date()
+        setState(prevState => {
+          console.log('State update:', {
+            previous: prevState,
+            new: {
+              isLoading: false,
+              error: null,
+              data,
+              lastUpdated: new Date()
+            }
+          });
+          return {
+            isLoading: false,
+            error: null,
+            data,
+            lastUpdated: new Date()
+          };
         });
         console.log('State updated successfully');
       }
@@ -147,6 +160,11 @@ export const DataProvider = ({ children }) => {
         }
         
         const fallbackData = await fallbackResponse.json();
+        console.log('Fallback data loaded:', {
+          hasData: !!fallbackData,
+          topLevelKeys: Object.keys(fallbackData),
+          overviewPresent: !!fallbackData?.overview
+        });
         
         // Validate fallback data structure
         if (!fallbackData || !fallbackData.overview) {
@@ -155,11 +173,22 @@ export const DataProvider = ({ children }) => {
         
         if (isMountedRef.current) {
           console.log('Data loaded successfully from fallback');
-          setState({
-            isLoading: false,
-            error: null,
-            data: fallbackData,
-            lastUpdated: new Date()
+          setState(prevState => {
+            console.log('State update from fallback:', {
+              previous: prevState,
+              new: {
+                isLoading: false,
+                error: null,
+                data: fallbackData,
+                lastUpdated: new Date()
+              }
+            });
+            return {
+              isLoading: false,
+              error: null,
+              data: fallbackData,
+              lastUpdated: new Date()
+            };
           });
         }
       } catch (fallbackError) {
@@ -174,11 +203,21 @@ export const DataProvider = ({ children }) => {
         if (isMountedRef.current) {
           const errorMessage = 'Failed to load dashboard data. Please check your network connection and try again.';
           console.error('Error loading data from both locations:', error, fallbackError);
-          setState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: errorMessage
-          }));
+          setState(prev => {
+            console.log('Error state update:', {
+              previous: prev,
+              new: {
+                ...prev,
+                isLoading: false,
+                error: errorMessage
+              }
+            });
+            return {
+              ...prev,
+              isLoading: false,
+              error: errorMessage
+            };
+          });
         }
       }
     }
