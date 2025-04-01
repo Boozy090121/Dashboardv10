@@ -200,6 +200,7 @@ fs.writeFileSync(indexHtmlFile, `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#1a73e8" />
     <meta name="description" content="Manufacturing Dashboard - Performance Metrics" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Mfg Dashboard" />
@@ -504,7 +505,10 @@ const STATIC_ASSETS = [
   '/favicon-32x32.png',
   '/apple-touch-icon.png',
   '/android-chrome-192x192.png',
-  '/android-chrome-512x512.png'
+  '/android-chrome-512x512.png',
+  '/static/js/main.*.js',
+  '/static/css/main.*.css',
+  '/static/media/*'
 ];
 
 // Install event - cache static assets
@@ -513,7 +517,18 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
+        // Cache known assets first
+        return cache.addAll(STATIC_ASSETS.filter(url => !url.includes('*')))
+          .then(() => {
+            // Then try to cache build files using pattern matching
+            return fetch('/asset-manifest.json')
+              .then(response => response.json())
+              .then(manifest => {
+                const buildFiles = Object.values(manifest.files || {});
+                return cache.addAll(buildFiles);
+              })
+              .catch(err => console.log('No asset manifest found, skipping build files'));
+          });
       })
   );
 });
@@ -533,13 +548,34 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache, falling back to network
 self.addEventListener('fetch', event => {
+  // Handle navigation requests
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Handle other requests
   event.respondWith(
     caches.match(event.request)
       .then(response => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request)
+          .then(response => {
+            // Cache successful responses
+            if (response.ok && response.type === 'basic') {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  cache.put(event.request, responseToCache);
+                });
+            }
+            return response;
+          });
       })
   );
 });`);
@@ -551,6 +587,15 @@ const vercelConfig = {
   "routes": [
     {
       "handle": "filesystem"
+    },
+    {
+      "src": "/static/(.*)",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" },
+      "continue": true
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
