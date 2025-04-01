@@ -3,16 +3,76 @@ import { DataProvider } from './DataContext';
 import Dashboard from './Dashboard';
 import ProcessAnalysis from './ProcessAnalysis';
 
+/**
+ * Main application component with tab navigation
+ */
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // Define all available tabs to match the existing structure
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', component: Dashboard },
-    { id: 'process-flow', label: 'Process Flow', component: ProcessAnalysis },
-    { id: 'lot-analytics', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
-    { id: 'customer-comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
-    { id: 'insights', label: 'Insights', component: () => <div className="placeholder-tab">Data Insights Dashboard</div> }
+    { 
+      id: 'dashboard', 
+      label: 'Dashboard',
+      component: Dashboard,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      )
+    },
+    { 
+      id: 'process-flow', 
+      label: 'Process Flow',
+      component: ProcessAnalysis,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3v18h18"></path>
+          <path d="m7 17 4-8 4 4 4-10"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'lot-analytics', 
+      label: 'Lot Analytics',
+      component: () => <div className="placeholder-tab card"><div className="placeholder-content">Lot Analytics Dashboard</div></div>,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 20v-6"></path>
+          <path d="M6 20v-6"></path>
+          <path d="M18 20v-6"></path>
+          <path d="M6 14c0-4 2-8 6-8s6 4 6 8"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'customer-comments', 
+      label: 'Customer Comments',
+      component: () => <div className="placeholder-tab card"><div className="placeholder-content">Customer Comment Analysis</div></div>,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'insights', 
+      label: 'Insights',
+      component: () => <div className="placeholder-tab card"><div className="placeholder-content">Data Insights Dashboard</div></div>,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path>
+          <path d="M8.5 8.5v.01"></path>
+          <path d="M16 15.5v.01"></path>
+          <path d="M12 12v.01"></path>
+          <path d="M11 17v.01"></path>
+          <path d="M7 14v.01"></path>
+        </svg>
+      )
+    }
   ];
 
   // Get the active component to render
@@ -28,7 +88,8 @@ const App = () => {
               className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.id)}
             >
-              {tab.label}
+              {tab.icon}
+              <span className="tab-label">{tab.label}</span>
             </button>
           ))}
         </div>

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 
+/**
+ * MetricCard component displays a standardized metric visualization with trends and goals
+ */
 const MetricCard = ({
   title,
   value,
@@ -11,9 +14,12 @@ const MetricCard = ({
   status = 'normal',
   showDetails = false,
   detailMetrics = [],
-  trendData = []
+  trendData = [],
+  subtitle,
+  tooltip
 }) => {
   const [showDetailView, setShowDetailView] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   
   const formatValue = (val) => {
     if (val === undefined || val === null) return '-';
@@ -28,17 +34,45 @@ const MetricCard = ({
   };
 
   const trendPercentage = calculateTrendPercentage();
-  const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '–';
-  const trendClass = 
-    trend === 'up' ? 'text-green-500' : 
-    trend === 'down' ? 'text-red-500' : 
-    'text-gray-400';
+  
+  // Define trend indicators and their styling
+  const getTrendIndicator = () => {
+    if (trend === 'up') {
+      return {
+        icon: '↑',
+        className: 'text-green-500',
+        ariaLabel: 'Increasing'
+      };
+    } else if (trend === 'down') {
+      return {
+        icon: '↓',
+        className: 'text-red-500',
+        ariaLabel: 'Decreasing'
+      };
+    } else {
+      return {
+        icon: '–',
+        className: 'text-gray-400',
+        ariaLabel: 'No change'
+      };
+    }
+  };
+  
+  const trendIndicator = getTrendIndicator();
 
-  const statusClass = 
-    status === 'success' ? 'border-l-4 border-green-500' : 
-    status === 'warning' ? 'border-l-4 border-yellow-500' : 
-    status === 'critical' ? 'border-l-4 border-red-500' : 
-    'border-l-4 border-transparent';
+  // Status border styling
+  const getStatusClass = () => {
+    switch(status) {
+      case 'success':
+        return 'border-l-4 border-success';
+      case 'warning':
+        return 'border-l-4 border-warning';
+      case 'critical':
+        return 'border-l-4 border-error';
+      default:
+        return 'border-l-4 border-transparent';
+    }
+  };
 
   const toggleDetails = () => {
     setShowDetailView(!showDetailView);
@@ -58,7 +92,7 @@ const MetricCard = ({
   };
 
   return (
-    <div className={`metric-card ${statusClass}`}>
+    <div className={`metric-card ${getStatusClass()}`}>
       <div className="metric-header">
         <h3 className="metric-title">{title}</h3>
         {showDetails && (
@@ -72,13 +106,22 @@ const MetricCard = ({
         )}
       </div>
       
+      {subtitle && <div className="metric-subtitle">{subtitle}</div>}
+      
       <div className="metric-value-container">
-        <div className="metric-value">{formatValue(value)}</div>
+        <div className="metric-value" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+          {formatValue(value)}
+          {tooltip && showTooltip && (
+            <div className="metric-tooltip">
+              {tooltip}
+            </div>
+          )}
+        </div>
         
         {previousValue !== undefined && (
-          <div className={`metric-trend ${trendClass}`}>
-            <span>{trendIcon}</span>
-            <span>{Math.abs(trendPercentage)}%</span>
+          <div className={`metric-trend ${trendIndicator.className}`}>
+            <span className="trend-icon" aria-label={trendIndicator.ariaLabel}>{trendIndicator.icon}</span>
+            <span className="trend-value">{Math.abs(trendPercentage)}%</span>
           </div>
         )}
       </div>
@@ -95,8 +138,8 @@ const MetricCard = ({
             </div>
           </div>
           <div className="goal-text">
-            <span>Current</span>
-            <span>{goalLabel}: {formatValue(goal)}</span>
+            <span>{formatValue(value)} of {formatValue(goal)}</span>
+            <span>{goalLabel}</span>
           </div>
         </div>
       )}
@@ -112,6 +155,7 @@ const MetricCard = ({
                 height: getBarHeight(item.value),
                 opacity: idx === trendData.length - 1 ? 1 : 0.6 + (idx * 0.1)
               }}
+              title={`${item.label}: ${formatValue(item.value)}`}
             ></div>
           ))}
         </div>
