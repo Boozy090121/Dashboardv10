@@ -1,9 +1,10 @@
 import React from 'react';
+import TimeFilter from './TimeFilter';
 
 /**
  * DashboardHeader provides the main header for dashboards with title, time controls, and refresh functionality
  */
-const DashboardHeader = ({ title, onRefresh, lastUpdated, timeRange, setTimeRange }) => {
+const DashboardHeader = ({ title, onRefresh, lastUpdated }) => {
   return (
     <div className="dashboard-header">
       <div className="header-with-banner">
@@ -12,21 +13,7 @@ const DashboardHeader = ({ title, onRefresh, lastUpdated, timeRange, setTimeRang
       </div>
       
       <div className="dashboard-actions">
-        {setTimeRange && (
-          <div className="time-filter">
-            <div className="time-range-controls">
-              {['1m', '3m', '6m', '12m', 'ytd'].map((range) => (
-                <button
-                  key={range}
-                  className={`btn ${timeRange === range ? 'btn-primary' : 'btn-tertiary'} btn-sm`}
-                  onClick={() => setTimeRange(range)}
-                >
-                  {range === 'ytd' ? 'YTD' : range.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <TimeFilter />
         
         <button onClick={onRefresh} className="btn btn-primary">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
