@@ -9,6 +9,9 @@ const srcDir = path.join(__dirname, 'src');
 const dataFile = path.join(dataDir, 'complete-data.json');
 const debugIndexFile = path.join(srcDir, 'debug-index.js');
 const indexHtmlFile = path.join(publicDir, 'index.html');
+const mainIndexFile = path.join(srcDir, 'index.js');
+const appFile = path.join(srcDir, 'App.js');
+const indexCssFile = path.join(srcDir, 'index.css');
 
 console.log('Running Vercel build preparation...');
 
@@ -20,6 +23,137 @@ dirs.forEach(dir => {
     fs.mkdirSync(dir, { recursive: true });
   }
 });
+
+// Create main index.js
+console.log('Creating main index.js...');
+fs.writeFileSync(mainIndexFile, `
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+`);
+
+// Create App.js
+console.log('Creating App.js...');
+fs.writeFileSync(appFile, `
+import React, { useState } from 'react';
+import './index.css';
+
+function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  return (
+    <div className="app-container">
+      <div className="tabs-container">
+        <button 
+          className={\`tab-button \${activeTab === 'dashboard' ? 'active' : ''}\`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          Dashboard
+        </button>
+        <button 
+          className={\`tab-button \${activeTab === 'process-flow' ? 'active' : ''}\`}
+          onClick={() => setActiveTab('process-flow')}
+        >
+          Process Flow
+        </button>
+      </div>
+      <div className="content-container">
+        <h1>Manufacturing Dashboard</h1>
+        <p>Welcome to the Manufacturing Performance Dashboard</p>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+`);
+
+// Create index.css
+console.log('Creating index.css...');
+fs.writeFileSync(indexCssFile, `
+:root {
+  --primary-color: #1a73e8;
+  --secondary-color: #4285f4;
+  --background-color: #f5f7fa;
+  --text-color: #333333;
+  --border-color: #e0e0e0;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.tabs-container {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+}
+
+.tab-button.active {
+  color: var(--primary-color);
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--primary-color);
+}
+
+.content-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+  color: #666;
+}
+`);
 
 // Create debug-index.js
 console.log('Creating debug-index.js...');
