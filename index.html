@@ -13,65 +13,96 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="./pci-enhanced-styles.css" rel="stylesheet">
+    <link href="./tab-fix.css" rel="stylesheet">
     <style>
       /* Critical PCI styles to ensure tabs render correctly */
+      :root {
+        --pci-red: #CC2030 !important;
+        --pci-blue: #00518A !important;
+        --pci-dark-grey: #232323 !important;
+        --neutral-50: #F9FAFB !important;
+        --neutral-100: #F3F4F6 !important;
+        --neutral-200: #E5E7EB !important;
+        --neutral-600: #6B7280 !important;
+      }
+      
       .app-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 20px;
-        position: relative;
+        max-width: 1400px !important;
+        margin: 0 auto !important;
+        padding: 20px !important;
+        position: relative !important;
       }
 
       .tabs-container {
-        display: flex;
-        overflow-x: auto;
-        border-bottom: 1px solid #E5E7EB;
-        margin-bottom: 24px;
-        scrollbar-width: thin;
-        position: relative;
+        display: flex !important;
+        overflow-x: auto !important;
+        border-bottom: 1px solid #E5E7EB !important;
+        margin-bottom: 24px !important;
+        scrollbar-width: thin !important;
+        position: relative !important;
+        width: 100% !important;
       }
 
       .tab-button {
-        display: inline-flex;
-        align-items: center;
-        padding: 12px 16px;
-        font-size: 14px;
-        font-weight: 500;
-        color: #6B7280;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        white-space: nowrap;
-        position: relative;
-        transition: all 250ms ease;
-        gap: 8px;
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: #6B7280 !important;
+        border: none !important;
+        background: transparent !important;
+        cursor: pointer !important;
+        white-space: nowrap !important;
+        position: relative !important;
+        transition: all 250ms ease !important;
+        gap: 8px !important;
       }
 
       .tab-button::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background-color: #CC2030;
-        transform: scaleX(0);
-        transition: transform 250ms ease;
-        transform-origin: center;
+        content: '' !important;
+        position: absolute !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 2px !important;
+        background-color: #CC2030 !important;
+        transform: scaleX(0) !important;
+        transition: transform 250ms ease !important;
+        transform-origin: center !important;
       }
 
       .tab-button.active {
-        color: #CC2030;
-        font-weight: 600;
+        color: #CC2030 !important;
+        font-weight: 600 !important;
       }
 
       .tab-button.active::after {
-        transform: scaleX(1);
+        transform: scaleX(1) !important;
       }
 
       .tab-button:hover:not(.active) {
-        color: #232323;
-        background-color: #F3F4F6;
+        color: #232323 !important;
+        background-color: #F3F4F6 !important;
+      }
+      
+      .tab-button svg {
+        width: 16px !important;
+        height: 16px !important;
+        color: currentColor !important;
+      }
+      
+      /* Force override any other styles */
+      body #root .app-container .tabs-container .tab-button {
+        color: #6B7280 !important;
+      }
+      
+      body #root .app-container .tabs-container .tab-button.active {
+        color: #CC2030 !important;
+      }
+      
+      body #root .app-container .tabs-container .tab-button:hover:not(.active) {
+        color: #232323 !important;
       }
     </style>
     <script>

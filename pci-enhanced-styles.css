@@ -4,17 +4,17 @@
 
 :root {
   /* PCI Brand Color System */
-  --pci-red: #CC2030 !important;        /* Primary brand color */
-  --pci-red-light: #E84C59 !important;
-  --pci-red-dark: #A31926 !important;
-  --pci-red-10: rgba(204, 32, 48, 0.1) !important;
-  --pci-red-20: rgba(204, 32, 48, 0.2) !important;
+  --pci-red: #CC2030;        /* Primary brand color */
+  --pci-red-light: #E84C59;
+  --pci-red-dark: #A31926;
+  --pci-red-10: rgba(204, 32, 48, 0.1);
+  --pci-red-20: rgba(204, 32, 48, 0.2);
   
-  --pci-blue: #00518A !important;       /* Secondary brand color */
-  --pci-blue-light: #0073C4 !important;
-  --pci-blue-dark: #003C66 !important;
-  --pci-blue-10: rgba(0, 81, 138, 0.1) !important;
-  --pci-blue-20: rgba(0, 81, 138, 0.2) !important;
+  --pci-blue: #00518A;       /* Secondary brand color */
+  --pci-blue-light: #0073C4;
+  --pci-blue-dark: #003C66;
+  --pci-blue-10: rgba(0, 81, 138, 0.1);
+  --pci-blue-20: rgba(0, 81, 138, 0.2);
   
   --pci-dark-grey: #232323;  /* Supporting dark grey */
   --pci-mid-grey: #5A5A5A;
@@ -2321,7 +2321,7 @@ code {
 .app-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--space-6);
+  padding: 20px;
   position: relative;
 }
 
@@ -2565,8 +2565,8 @@ code {
 .tabs-container {
   display: flex;
   overflow-x: auto;
-  border-bottom: 1px solid var(--neutral-200);
-  margin-bottom: var(--space-6);
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 24px;
   scrollbar-width: thin;
   position: relative;
 }
@@ -2578,7 +2578,7 @@ code {
   top: 0;
   bottom: 0;
   width: 20px;
-  background: linear-gradient(to right, transparent, var(--neutral-50));
+  background: linear-gradient(to right, transparent, #F9FAFB);
   pointer-events: none;
   z-index: 1;
 }
@@ -2586,17 +2586,17 @@ code {
 .tab-button {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--neutral-600);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B7280;
   border: none;
   background: transparent;
   cursor: pointer;
   white-space: nowrap;
   position: relative;
-  transition: all var(--transition-normal);
-  gap: var(--space-2);
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 8px;
 }
 
 .tab-button svg {
@@ -2612,15 +2612,15 @@ code {
   left: 0;
   right: 0;
   height: 2px;
-  background-color: var(--pci-red);
+  background-color: #CC2030;
   transform: scaleX(0);
-  transition: transform var(--transition-normal);
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
 }
 
 .tab-button.active {
-  color: var(--pci-red);
-  font-weight: var(--font-semibold);
+  color: #CC2030;
+  font-weight: 600;
 }
 
 .tab-button.active::after {
@@ -2628,12 +2628,12 @@ code {
 }
 
 .tab-button:hover:not(.active) {
-  color: var(--pci-dark-grey);
-  background-color: var(--neutral-100);
+  color: #232323;
+  background-color: #F3F4F6;
 }
 
 .tab-content {
-  padding: var(--space-4);
+  padding: 16px;
   animation: fadeIn 0.3s ease;
 }
 

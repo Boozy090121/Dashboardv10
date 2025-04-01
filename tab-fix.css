@@ -1,0 +1,77 @@
+/* Critical tab styles that override everything else */
+.app-container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  position: relative !important;
+}
+
+.tabs-container {
+  display: flex !important;
+  overflow-x: auto !important;
+  border-bottom: 1px solid #E5E7EB !important;
+  margin-bottom: 24px !important;
+  scrollbar-width: thin !important;
+  position: relative !important;
+  width: 100% !important;
+}
+
+.tab-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #6B7280 !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  position: relative !important;
+  transition: all 250ms ease !important;
+  gap: 8px !important;
+}
+
+.tab-button::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 2px !important;
+  background-color: #CC2030 !important;
+  transform: scaleX(0) !important;
+  transition: transform 250ms ease !important;
+  transform-origin: center !important;
+}
+
+.tab-button.active {
+  color: #CC2030 !important;
+  font-weight: 600 !important;
+}
+
+.tab-button.active::after {
+  transform: scaleX(1) !important;
+}
+
+.tab-button:hover:not(.active) {
+  color: #232323 !important;
+  background-color: #F3F4F6 !important;
+}
+
+.tab-button svg {
+  width: 16px !important;
+  height: 16px !important;
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.tab-button.active svg {
+  stroke: #CC2030 !important;
+  color: #CC2030 !important;
+}
+
+.tab-label {
+  display: inline-block !important;
+  margin-left: 8px !important;
+} 
