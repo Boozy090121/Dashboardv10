@@ -1,103 +1,83 @@
 {
   "version": 2,
-  "builds": [
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "build",
+  "public": true,
+  "routes": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { 
-        "distDir": "build",
-        "buildCommand": "npm run vercel-build"
-      }
+      "src": "/static/(.*)",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" },
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/site.webmanifest",
+      "dest": "/site.webmanifest"
+    },
+    {
+      "src": "/(.*)\\.png",
+      "dest": "/$1.png"
+    },
+    {
+      "src": "/(.*)\\.js",
+      "dest": "/$1.js"
+    },
+    {
+      "src": "/(.*)\\.json",
+      "dest": "/$1.json"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
-  ],
-  "rewrites": [
-    { "source": "/site.webmanifest", "destination": "/site.webmanifest" },
-    { "source": "/data/:path*", "destination": "/data/:path*" },
-    { "source": "/:path*.json", "destination": "/:path*.json" },
-    { "source": "/:path*.svg", "destination": "/:path*.svg" },
-    { "source": "/:path*.jpg", "destination": "/:path*.jpg" },
-    { "source": "/:path*.png", "destination": "/:path*.png" },
-    { "source": "/:path*.ico", "destination": "/:path*.ico" },
-    { "source": "/:path*.woff", "destination": "/:path*.woff" },
-    { "source": "/:path*.woff2", "destination": "/:path*.woff2" },
-    { "source": "/:path*.webmanifest", "destination": "/:path*.webmanifest" },
-    { "source": "/:path*.xml", "destination": "/:path*.xml" },
-    { "source": "/:path*.txt", "destination": "/:path*.txt" },
-    { "source": "/debug", "destination": "/index.html" },
-    { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/process-flow", "destination": "/index.html" },
-    { "source": "/lot-analytics", "destination": "/index.html" },
-    { "source": "/visualizations", "destination": "/index.html" },
-    { "source": "/intelligence", "destination": "/index.html" },
-    { "source": "/insights", "destination": "/index.html" },
-    { "source": "/customer-comments", "destination": "/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/:path*.webmanifest",
+      "source": "/sw.js",
       "headers": [
         {
           "key": "Content-Type",
-          "value": "application/manifest+json"
+          "value": "application/javascript; charset=utf-8"
         },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
-    },
-    {
-      "source": "/:path*.json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
-      ]
-    },
-    {
-      "source": "/data/(.*)",
-      "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=3600, stale-while-revalidate=60"
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/site.webmanifest",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.png",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
         }
       ]
     }
-  ],
-  "env": {
-    "REACT_APP_ENTRY_POINT": "./src/debug-index.js",
-    "REACT_APP_API_URL": "https://api.your-domain.vercel.app",
-    "REACT_APP_ENV": "production"
-  }
+  ]
 } 

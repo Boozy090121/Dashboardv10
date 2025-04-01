@@ -26,28 +26,57 @@ dirs.forEach(dir => {
 
 // Create main index.js
 console.log('Creating main index.js...');
-fs.writeFileSync(mainIndexFile, `
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+fs.writeFileSync(mainIndexFile, `import React from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const container = document.getElementById('root');
+const root = createRoot(container);
+
 root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
-);
-`);
+);`);
 
-// Create App.js
+// Create App.js with proper routing
 console.log('Creating App.js...');
-fs.writeFileSync(appFile, `
-import React, { useState } from 'react';
+fs.writeFileSync(appFile, `import React, { useState, useEffect } from 'react';
 import './index.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('process-flow');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('/data/complete-data.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error loading data:', error);
+        setError(error.message);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="error">Error: {error}</div>;
+  }
 
   return (
     <div className="app-container">
@@ -67,17 +96,22 @@ function App() {
       </div>
       <div className="content-container">
         <h1>Manufacturing Dashboard</h1>
-        <p>Welcome to the Manufacturing Performance Dashboard</p>
+        {data && (
+          <div>
+            <p>Total Records: {data.overview?.totalRecords}</p>
+            <p>Total Lots: {data.overview?.totalLots}</p>
+            <p>Overall RFT Rate: {data.overview?.overallRFTRate}%</p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export default App;
-`);
+export default App;`);
 
-// Create index.css
-console.log('Creating index.css...');
+// Update index.css with loading and error states
+console.log('Updating index.css...');
 fs.writeFileSync(indexCssFile, `
 :root {
   --primary-color: #1a73e8;
@@ -85,6 +119,7 @@ fs.writeFileSync(indexCssFile, `
   --background-color: #f5f7fa;
   --text-color: #333333;
   --border-color: #e0e0e0;
+  --error-color: #dc3545;
 }
 
 body {
@@ -104,11 +139,33 @@ body {
   padding: 20px;
 }
 
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: var(--error-color);
+  padding: 20px;
+  text-align: center;
+}
+
 .tabs-container {
   display: flex;
   overflow-x: auto;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 20px;
+  background-color: white;
+  border-radius: 8px 8px 0 0;
 }
 
 .tab-button {
@@ -120,6 +177,7 @@ body {
   color: #666;
   cursor: pointer;
   position: relative;
+  white-space: nowrap;
 }
 
 .tab-button.active {
@@ -150,8 +208,9 @@ h1 {
 }
 
 p {
-  margin: 0;
+  margin: 8px 0;
   color: #666;
+  font-size: 16px;
 }
 `);
 
