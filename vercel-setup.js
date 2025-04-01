@@ -4,11 +4,47 @@ const path = require('path');
 
 console.log('Running Vercel build preparation...');
 
+// Ensure public directory exists
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)) {
+  console.log('Creating public directory...');
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+
 // Ensure public/data directory exists
 const dataDir = path.join(__dirname, 'public', 'data');
 if (!fs.existsSync(dataDir)) {
   console.log('Creating public/data directory...');
   fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Ensure index.html exists in public directory
+const indexHtmlFile = path.join(publicDir, 'index.html');
+if (!fs.existsSync(indexHtmlFile)) {
+  console.log('Creating index.html in public directory...');
+  fs.writeFileSync(indexHtmlFile, `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1a73e8" />
+    <meta
+      name="description"
+      content="Manufacturing Dashboard - Performance Metrics"
+    />
+    <title>Manufacturing Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>`);
+  console.log('index.html created successfully!');
+} else {
+  console.log('index.html already exists, skipping creation.');
 }
 
 // Ensure data file exists
