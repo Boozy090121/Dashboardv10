@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { DataProvider } from './DataContext';
 import { TimeFilterProvider } from './TimeFilterContext';
+import { StorageProvider } from './StorageProvider';
 import Dashboard from './Dashboard';
 import ProcessAnalysis from './ProcessAnalysis';
 import IntelligenceEngine from './IntelligenceEngine';
 import LotCorrelationTracker from './LotCorrelationTracker';
 import EnhancedVisualizations from './EnhancedVisualizations';
 import HistoricalAnalysis from './HistoricalAnalysis';
+import CustomerCommentAnalysis from './CustomerCommentAnalysis';
+import Widgets from './Widgets';
+import UserSettings from './UserSettings';
 
 /**
  * Main application component with tab navigation
@@ -20,7 +24,7 @@ const App = () => {
     
     // If hash matches a valid tab, use that
     if (['dashboard', 'intelligence', 'process-flow', 'lot-analytics', 
-         'visualizations', 'historical', 'customer-comments'].includes(hash)) {
+         'visualizations', 'historical', 'customer-comments', 'widgets', 'settings'].includes(hash)) {
       console.log('Setting initial tab from URL:', hash);
       return hash;
     }
@@ -77,7 +81,7 @@ const App = () => {
     { 
       id: 'customer-comments', 
       label: 'Customer Comments',
-      component: () => <div className="placeholder-tab card"><div className="placeholder-content">Customer Comment Analysis Dashboard</div></div>,
+      component: CustomerCommentAnalysis,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -104,6 +108,30 @@ const App = () => {
           <circle cx="12" cy="12" r="10"></circle>
         </svg>
       )
+    },
+    { 
+      id: 'widgets', 
+      label: 'Widgets',
+      component: Widgets,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="4" width="6" height="6"></rect>
+          <rect x="14" y="4" width="6" height="6"></rect>
+          <rect x="4" y="14" width="6" height="6"></rect>
+          <rect x="14" y="14" width="6" height="6"></rect>
+        </svg>
+      )
+    },
+    { 
+      id: 'settings', 
+      label: 'Settings',
+      component: UserSettings,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      )
     }
   ];
 
@@ -112,26 +140,28 @@ const App = () => {
   console.log('Rendering component for tab:', activeTab, 'Component:', ActiveComponent?.name || 'Unknown');
   
   return (
-    <DataProvider>
-      <TimeFilterProvider>
-        <div className="app-container">
-          <div className="tabs-container">
-            {tabs.map(tab => (
-              <button 
-                key={tab.id}
-                className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.icon}
-                <span className="tab-label">{tab.label}</span>
-              </button>
-            ))}
+    <StorageProvider>
+      <DataProvider>
+        <TimeFilterProvider>
+          <div className="app-container">
+            <div className="tabs-container">
+              {tabs.map(tab => (
+                <button 
+                  key={tab.id}
+                  className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.icon}
+                  <span className="tab-label">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+            
+            <ActiveComponent />
           </div>
-          
-          <ActiveComponent />
-        </div>
-      </TimeFilterProvider>
-    </DataProvider>
+        </TimeFilterProvider>
+      </DataProvider>
+    </StorageProvider>
   );
 };
 
