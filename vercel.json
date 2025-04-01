@@ -10,25 +10,19 @@
       }
     }
   ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/data/(.*)", "dest": "/data/$1" },
-    { "src": "/(.*\\.(json|svg|jpg|png|ico|woff|woff2|webmanifest|xml|txt))", "dest": "/$1" },
-    { "src": "/debug", "dest": "/index.html" },
-    { "src": "/dashboard", "dest": "/index.html" },
-    { "src": "/process-flow", "dest": "/index.html" },
-    { "src": "/lot-analytics", "dest": "/index.html" },
-    { "src": "/visualizations", "dest": "/index.html" },
-    { "src": "/intelligence", "dest": "/index.html" },
-    { "src": "/insights", "dest": "/index.html" },
-    { "src": "/customer-comments", "dest": "/index.html" },
-    { "src": "/.*", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/data/(.*)", "destination": "/data/$1" },
+    { "source": "/(.*\\.(json|svg|jpg|png|ico|woff|woff2|webmanifest|xml|txt))", "destination": "/$1" },
+    { "source": "/debug", "destination": "/index.html" },
+    { "source": "/dashboard", "destination": "/index.html" },
+    { "source": "/process-flow", "destination": "/index.html" },
+    { "source": "/lot-analytics", "destination": "/index.html" },
+    { "source": "/visualizations", "destination": "/index.html" },
+    { "source": "/intelligence", "destination": "/index.html" },
+    { "source": "/insights", "destination": "/index.html" },
+    { "source": "/customer-comments", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "env": {
-    "REACT_APP_ENTRY_POINT": "./src/debug-index.js",
-    "REACT_APP_API_URL": "https://api.your-domain.vercel.app",
-    "REACT_APP_ENV": "production"
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -64,5 +58,10 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "REACT_APP_ENTRY_POINT": "./src/debug-index.js",
+    "REACT_APP_API_URL": "https://api.your-domain.vercel.app",
+    "REACT_APP_ENV": "production"
+  }
 } 
