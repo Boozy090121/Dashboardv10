@@ -24,7 +24,7 @@ const App = () => {
     
     // If hash matches a valid tab, use that
     if (['dashboard', 'intelligence', 'process-flow', 'lot-analytics', 
-         'visualizations', 'historical', 'customer-comments', 'widgets', 'settings'].includes(hash)) {
+         'visualizations', 'insights', 'customer-comments', 'widgets', 'settings'].includes(hash)) {
       console.log('Setting initial tab from URL:', hash);
       return hash;
     }
@@ -110,6 +110,21 @@ const App = () => {
       )
     },
     { 
+      id: 'visualizations', 
+      label: 'Visualizations',
+      component: EnhancedVisualizations,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5"></path>
+          <path d="M16 2v4"></path>
+          <path d="M8 2v4"></path>
+          <path d="M3 10h18"></path>
+          <circle cx="18" cy="18" r="3"></circle>
+          <path d="m19.5 19.5 2.5 2.5"></path>
+        </svg>
+      )
+    },
+    { 
       id: 'widgets', 
       label: 'Widgets',
       component: Widgets,
@@ -143,16 +158,32 @@ const App = () => {
     <StorageProvider>
       <DataProvider>
         <TimeFilterProvider>
-          <div className="app-container">
-            <div className="tabs-container">
+          <div className="app-container" style={{maxWidth: '1400px', margin: '0 auto', padding: '20px', position: 'relative'}}>
+            <div className="tabs-container" style={{display: 'flex', overflowX: 'auto', borderBottom: '1px solid #E5E7EB', marginBottom: '24px'}}>
               {tabs.map(tab => (
                 <button 
                   key={tab.id}
                   className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: activeTab === tab.id ? '600' : '500',
+                    color: activeTab === tab.id ? '#CC2030' : '#6B7280',
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    position: 'relative',
+                    gap: '8px'
+                  }}
                   onClick={() => setActiveTab(tab.id)}
                 >
-                  {tab.icon}
-                  <span className="tab-label">{tab.label}</span>
+                  <span style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', color: activeTab === tab.id ? '#CC2030' : '#6B7280'}}>
+                    {tab.icon}
+                  </span>
+                  <span className="tab-label" style={{marginLeft: '8px'}}>{tab.label}</span>
                 </button>
               ))}
             </div>

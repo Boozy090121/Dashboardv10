@@ -5,6 +5,7 @@ import App from './App';
 import './index.css';
 import './enhanced-components.css';
 import './pci-enhanced-styles.css';  // Moved to end to ensure it has highest priority
+import './tab-fix.css';  // Added tab-fix.css last to ensure it overrides everything else
 
 // Initialize the application with React 18 syntax
 // Not using StrictMode to avoid double rendering effects
