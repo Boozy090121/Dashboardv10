@@ -870,16 +870,159 @@ import React from 'react';
 import { useDataContext } from './DataContext';
 
 const Dashboard = () => {
-  const { data, isLoading } = useDataContext();
+  const { data, isLoading, error } = useDataContext();
   
   if (isLoading) {
-    return <div className="loading-container">Loading dashboard data...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading dashboard data...</p>
+      </div>
+    );
   }
+  
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error-icon">⚠️</div>
+        <h3>Error Loading Data</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
+  
+  // Extract metrics from the data
+  const metrics = data?.overview || {};
+  const rftRate = metrics.overallRFTRate || 0;
+  const totalLots = metrics.totalLots || 0;
+  const totalRecords = metrics.totalRecords || 0;
+  const issueDistribution = metrics.issueDistribution || [];
   
   return (
     <div className="dashboard-container">
-      <h1>Dashboard</h1>
-      <p>This is a placeholder dashboard component.</p>
+      <h1>Manufacturing Performance Dashboard</h1>
+      
+      {/* Overview Metrics */}
+      <div className="metrics-grid">
+        <div className="metric-card">
+          <div className="metric-header">
+            <h3 className="metric-title">Overall RFT Rate</h3>
+          </div>
+          <div className="metric-value">{rftRate}%</div>
+          <div className="metric-trend trend-up">↑ 2.3% vs previous period</div>
+        </div>
+        
+        <div className="metric-card">
+          <div className="metric-header">
+            <h3 className="metric-title">Total Lots</h3>
+          </div>
+          <div className="metric-value">{totalLots}</div>
+          <div className="metric-trend">Total since tracking began</div>
+        </div>
+        
+        <div className="metric-card">
+          <div className="metric-header">
+            <h3 className="metric-title">Total Records</h3>
+          </div>
+          <div className="metric-value">{totalRecords}</div>
+          <div className="metric-trend">Individual process records</div>
+        </div>
+        
+        <div className="metric-card">
+          <div className="metric-header">
+            <h3 className="metric-title">Cycle Time</h3>
+          </div>
+          <div className="metric-value">{data?.processMetrics?.totalCycleTime?.average || 0} days</div>
+          <div className="metric-trend trend-down">↓ 1.2 days vs target</div>
+        </div>
+      </div>
+      
+      {/* Issues Summary */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Issue Distribution</h2>
+        </div>
+        <div className="card-content">
+          <div className="issue-distribution">
+            {issueDistribution.map((issue, index) => (
+              <div key={index} className="issue-item">
+                <div className="issue-name">{issue.name}</div>
+                <div className="issue-bar-container">
+                  <div 
+                    className="issue-bar" 
+                    style={{ 
+                      width: \`\${(issue.value / issueDistribution.reduce((sum, i) => sum + i.value, 0)) * 100}%\`, 
+                      backgroundColor: index === 0 ? '#f44336' : 
+                                      index === 1 ? '#ff9800' : 
+                                      index === 2 ? '#2196f3' : 
+                                      '#4caf50' 
+                    }}
+                  ></div>
+                </div>
+                <div className="issue-value">{issue.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* RFT Performance */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">RFT Performance</h2>
+        </div>
+        <div className="card-content">
+          <div className="rft-performance">
+            {data?.overview?.rftPerformance?.map((item, index) => (
+              <div key={index} className="rft-item">
+                <div className="rft-name">{item.name}</div>
+                <div className="rft-bar-container">
+                  <div 
+                    className="rft-bar" 
+                    style={{ 
+                      width: \`\${item.percentage}%\`, 
+                      backgroundColor: item.name === 'Pass' ? '#4caf50' : '#f44336'
+                    }}
+                  ></div>
+                </div>
+                <div className="rft-percentage">{item.percentage}%</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Recent Performance Trend */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Recent RFT Trend</h2>
+        </div>
+        <div className="card-content">
+          <div className="trend-chart">
+            <div className="trend-labels">
+              {data?.overview?.rftByMonth?.map((item, index) => (
+                <div key={index} className="trend-label">{item.month}</div>
+              ))}
+            </div>
+            <div className="trend-bars">
+              {data?.overview?.rftByMonth?.map((item, index) => (
+                <div key={index} className="trend-bar-container">
+                  <div 
+                    className="trend-bar" 
+                    style={{ 
+                      height: \`\${(item.value / 100) * 200}px\`,
+                      backgroundColor: item.value > 92 ? '#4caf50' : 
+                                      item.value > 90 ? '#8bc34a' : 
+                                      item.value > 85 ? '#ff9800' : '#f44336'
+                    }}
+                  ></div>
+                  <div className="trend-value">{item.value}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -906,12 +1049,146 @@ export default IntelligenceEngine;
 // Create LotCorrelationTracker.js - Placeholder component
 console.log('Creating LotCorrelationTracker.js placeholder...');
 fs.writeFileSync(path.join(srcDir, 'LotCorrelationTracker.js'), `
-import React from 'react';
+import React, { useState } from 'react';
+import { useDataContext } from './DataContext';
 
 const LotCorrelationTracker = () => {
+  const { data, isLoading, error } = useDataContext();
+  const [selectedStage, setSelectedStage] = useState(null);
+  
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading lot analytics data...</p>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error-icon">⚠️</div>
+        <h3>Error Loading Data</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
+  
+  // Extract lot correlation data
+  const lotData = data?.lotCorrelation || {};
+  const flowData = lotData.flowData || [];
+  const cycleTimeMatrix = lotData.cycleTimeMatrix || [];
+  const errorPropagation = lotData.errorPropagation || [];
+  
+  // Get unique stages from the data
+  const stages = [];
+  if (cycleTimeMatrix && cycleTimeMatrix.length > 0) {
+    cycleTimeMatrix.forEach(item => {
+      if (!stages.includes(item.stage)) {
+        stages.push(item.stage);
+      }
+    });
+  }
+  
   return (
-    <div className="placeholder-tab card">
-      <div className="placeholder-content">Lot Correlation Dashboard</div>
+    <div className="lot-correlation-container">
+      <h1>Lot Analytics & Correlation</h1>
+      
+      {/* Process Flow Visualization */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Process Flow</h2>
+        </div>
+        <div className="card-content">
+          <div className="flow-diagram">
+            {flowData.map((flow, index) => (
+              <div key={index} className="flow-step">
+                <div className="flow-source">{flow.source}</div>
+                <div className="flow-arrow">→</div>
+                <div className="flow-target">{flow.target}</div>
+                <div className="flow-value">{flow.value} lots</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Cycle Time Analysis */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Cycle Time Analysis</h2>
+        </div>
+        <div className="card-content">
+          <div className="stage-selector">
+            <label>Select Stage: </label>
+            <select 
+              value={selectedStage || ''}
+              onChange={(e) => setSelectedStage(e.target.value)}
+            >
+              <option value="">All Stages</option>
+              {stages.map((stage, index) => (
+                <option key={index} value={stage}>{stage}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="cycle-time-matrix">
+            <div className="matrix-header">
+              <div className="matrix-cell">Stage</div>
+              <div className="matrix-cell">Min (days)</div>
+              <div className="matrix-cell">Avg (days)</div>
+              <div className="matrix-cell">Max (days)</div>
+              <div className="matrix-cell">Target (days)</div>
+            </div>
+            
+            {cycleTimeMatrix
+              .filter(item => !selectedStage || item.stage === selectedStage)
+              .map((item, index) => (
+                <div key={index} className="matrix-row">
+                  <div className="matrix-cell stage-name">{item.stage}</div>
+                  <div className="matrix-cell">{item.min}</div>
+                  <div className="matrix-cell avg-value">{item.avg}</div>
+                  <div className="matrix-cell">{item.max}</div>
+                  <div className="matrix-cell target-value">{item.target}</div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+      
+      {/* Error Propagation Analysis */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Error Propagation Analysis</h2>
+        </div>
+        <div className="card-content">
+          <div className="error-propagation">
+            {errorPropagation.map((error, index) => (
+              <div key={index} className="error-item">
+                <div className="error-source">
+                  <strong>Source:</strong> {error.sourceStage}
+                </div>
+                <div className="error-type">
+                  <strong>Error Type:</strong> {error.errorType}
+                </div>
+                <div className="error-count">
+                  <strong>Count:</strong> {error.count}
+                </div>
+                <div className="error-propagation-list">
+                  <strong>Propagated To:</strong>
+                  <ul>
+                    {error.propagatedToStages.map((stage, stageIndex) => (
+                      <li key={stageIndex}>{stage}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -1152,84 +1429,33 @@ body {
 .process-step-wrapper {
   position: relative;
   margin-bottom: 12px;
-  height: 80px;
 }
 
 .process-step-block {
-  position: absolute;
-  height: 64px;
   background-color: #e3f2fd;
   border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.process-step-block:hover {
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transform: translateY(-2px);
-}
-
-.bottleneck {
-  background-color: #ffebee;
-  border-left: 3px solid #f44336;
+  padding: 12px;
+  margin-bottom: 8px;
 }
 
 .step-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 4px;
 }
 
 .step-name {
   font-weight: 600;
-  font-size: 14px;
 }
 
 .step-time {
-  font-size: 12px;
   color: #666;
-}
-
-.trend-indicator {
-  margin-left: 4px;
-}
-
-.trend-indicator.increasing {
-  color: #f44336;
-}
-
-.trend-indicator.decreasing {
-  color: #4caf50;
-}
-
-.trend-indicator.stable {
-  color: #ff9800;
-}
-
-.step-target-bar {
-  height: 4px;
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 2px;
-  position: relative;
-  margin: 8px 0;
-}
-
-.step-target-marker {
-  position: absolute;
-  width: 2px;
-  height: 8px;
-  background-color: #333;
-  transform: translateX(-1px) translateY(-2px);
 }
 
 .step-variation-indicator {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  color: #777;
+  margin-top: 4px;
 }
 
 .variation-dot {
@@ -1348,6 +1574,185 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
   margin-bottom: 16px;
 }
 
+/* Dashboard specific styles */
+.dashboard-container h1 {
+  margin-bottom: 24px;
+  font-size: 24px;
+  color: #333;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.metric-title {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.trend-up {
+  color: #4caf50;
+}
+
+.trend-down {
+  color: #f44336;
+}
+
+/* Issue distribution */
+.issue-distribution {
+  margin-top: 16px;
+}
+
+.issue-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.issue-name {
+  width: 150px;
+  font-size: 14px;
+}
+
+.issue-bar-container {
+  flex-grow: 1;
+  height: 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin: 0 12px;
+  overflow: hidden;
+}
+
+.issue-bar {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.issue-value {
+  width: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* RFT Performance */
+.rft-performance {
+  margin-top: 16px;
+}
+
+.rft-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rft-name {
+  width: 80px;
+  font-size: 14px;
+}
+
+.rft-bar-container {
+  flex-grow: 1;
+  height: 24px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin: 0 12px;
+  overflow: hidden;
+}
+
+.rft-bar {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.rft-percentage {
+  width: 60px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Trend Chart */
+.trend-chart {
+  margin-top: 16px;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.trend-label {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+}
+
+.trend-bars {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 200px;
+  padding-top: 20px;
+}
+
+.trend-bar-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.trend-bar {
+  width: 24px;
+  border-radius: 4px 4px 0 0;
+}
+
+.trend-value {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Placeholder components */
 .placeholder-tab {
   display: flex;
   align-items: center;
@@ -1365,32 +1770,84 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
 .process-step-wrapper {
   position: relative;
   margin-bottom: 12px;
+  height: 80px;
 }
 
 .process-step-block {
+  position: absolute;
+  height: 64px;
   background-color: #e3f2fd;
   border-radius: 4px;
-  padding: 12px;
-  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.process-step-block:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.bottleneck {
+  background-color: #ffebee;
+  border-left: 3px solid #f44336;
 }
 
 .step-header {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 4px;
 }
 
 .step-name {
   font-weight: 600;
+  font-size: 14px;
 }
 
 .step-time {
+  font-size: 12px;
   color: #666;
+}
+
+.trend-indicator {
+  margin-left: 4px;
+}
+
+.trend-indicator.increasing {
+  color: #f44336;
+}
+
+.trend-indicator.decreasing {
+  color: #4caf50;
+}
+
+.trend-indicator.stable {
+  color: #ff9800;
+}
+
+.step-target-bar {
+  height: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  position: relative;
+  margin: 8px 0;
+}
+
+.step-target-marker {
+  position: absolute;
+  width: 2px;
+  height: 8px;
+  background-color: #333;
+  transform: translateX(-1px) translateY(-2px);
 }
 
 .step-variation-indicator {
   display: flex;
   align-items: center;
   gap: 4px;
+  font-size: 11px;
+  color: #777;
   margin-top: 4px;
 }
 
@@ -1410,6 +1867,124 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
 
 .variation-dot.low {
   background-color: #4caf50;
+}
+
+/* Lot Analytics Styles */
+.lot-correlation-container h1 {
+  margin-bottom: 24px;
+  font-size: 24px;
+  color: #333;
+}
+
+.flow-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #f5f7fa;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.flow-source, .flow-target {
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.flow-arrow {
+  color: #1a73e8;
+  font-size: 20px;
+}
+
+.flow-value {
+  margin-left: auto;
+  background-color: #e3f2fd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.stage-selector {
+  margin-bottom: 20px;
+}
+
+.stage-selector select {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.cycle-time-matrix {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.matrix-header {
+  display: flex;
+  font-weight: 600;
+  background-color: #f5f7fa;
+  padding: 12px 8px;
+  border-radius: 4px 4px 0 0;
+}
+
+.matrix-row {
+  display: flex;
+  padding: 10px 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.matrix-row:last-child {
+  border-bottom: none;
+}
+
+.matrix-cell {
+  flex: 1;
+}
+
+.stage-name {
+  font-weight: 500;
+}
+
+.avg-value {
+  color: #1a73e8;
+  font-weight: 500;
+}
+
+.target-value {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.error-propagation {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.error-item {
+  border: 1px solid #f5f5f5;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.error-source, .error-type, .error-count {
+  margin-bottom: 8px;
+}
+
+.error-propagation-list ul {
+  margin-top: 4px;
+  padding-left: 20px;
+}
+
+.error-propagation-list li {
+  margin-bottom: 4px;
 }
 `);
 
