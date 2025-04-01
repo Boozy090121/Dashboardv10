@@ -836,7 +836,8 @@ const ProcessAnalysis = () => {
   );
 };
 
-export default ProcessAnalysis;`);
+export default ProcessAnalysis;
+`);
 
 // Create additional files to make sure all dependencies are met
 console.log('Creating additional required files...');
@@ -1235,6 +1236,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import './enhanced-components.css';
 
 // Initialize the application
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -1581,72 +1583,72 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
   color: #333;
 }
 
-.metrics-grid {
+.dashboard-container .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
   margin-bottom: 24px;
 }
 
-.metric-card {
+.dashboard-container .metric-card {
   background-color: white;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.metric-header {
+.dashboard-container .metric-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.metric-title {
+.dashboard-container .metric-title {
   font-size: 14px;
   color: #666;
   margin: 0;
 }
 
-.metric-value {
+.dashboard-container .metric-value {
   font-size: 28px;
   font-weight: 600;
   color: #333;
   margin-bottom: 8px;
 }
 
-.metric-trend {
+.dashboard-container .metric-trend {
   display: flex;
   align-items: center;
   font-size: 14px;
   color: #666;
 }
 
-.trend-up {
+.dashboard-container .trend-up {
   color: #4caf50;
 }
 
-.trend-down {
+.dashboard-container .trend-down {
   color: #f44336;
 }
 
 /* Issue distribution */
-.issue-distribution {
+.dashboard-container .issue-distribution {
   margin-top: 16px;
 }
 
-.issue-item {
+.dashboard-container .issue-item {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.issue-name {
+.dashboard-container .issue-name {
   width: 150px;
   font-size: 14px;
 }
 
-.issue-bar-container {
+.dashboard-container .issue-bar-container {
   flex-grow: 1;
   height: 16px;
   background-color: #f5f5f5;
@@ -1655,12 +1657,12 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
   overflow: hidden;
 }
 
-.issue-bar {
+.dashboard-container .issue-bar {
   height: 100%;
   border-radius: 4px;
 }
 
-.issue-value {
+.dashboard-container .issue-value {
   width: 40px;
   font-size: 14px;
   font-weight: 600;
@@ -1668,22 +1670,22 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
 }
 
 /* RFT Performance */
-.rft-performance {
+.dashboard-container .rft-performance {
   margin-top: 16px;
 }
 
-.rft-item {
+.dashboard-container .rft-item {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.rft-name {
+.dashboard-container .rft-name {
   width: 80px;
   font-size: 14px;
 }
 
-.rft-bar-container {
+.dashboard-container .rft-bar-container {
   flex-grow: 1;
   height: 24px;
   background-color: #f5f5f5;
@@ -1692,12 +1694,12 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
   overflow: hidden;
 }
 
-.rft-bar {
+.dashboard-container .rft-bar {
   height: 100%;
   border-radius: 4px;
 }
 
-.rft-percentage {
+.dashboard-container .rft-percentage {
   width: 60px;
   font-size: 14px;
   font-weight: 600;
@@ -1705,27 +1707,27 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
 }
 
 /* Trend Chart */
-.trend-chart {
+.dashboard-container .trend-chart {
   margin-top: 16px;
   height: 240px;
   display: flex;
   flex-direction: column;
 }
 
-.trend-labels {
+.dashboard-container .trend-labels {
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
 }
 
-.trend-label {
+.dashboard-container .trend-label {
   flex: 1;
   text-align: center;
   font-size: 12px;
   color: #666;
 }
 
-.trend-bars {
+.dashboard-container .trend-bars {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -1733,7 +1735,7 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
   padding-top: 20px;
 }
 
-.trend-bar-container {
+.dashboard-container .trend-bar-container {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1741,12 +1743,12 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
   height: 100%;
 }
 
-.trend-bar {
+.dashboard-container .trend-bar {
   width: 24px;
   border-radius: 4px 4px 0 0;
 }
 
-.trend-value {
+.dashboard-container .trend-value {
   margin-top: 8px;
   font-size: 12px;
   font-weight: 600;
@@ -1985,7 +1987,6 @@ fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
 
 .error-propagation-list li {
   margin-bottom: 4px;
-}
-`);
+}`);
 
 console.log('Vercel setup completed successfully!');
