@@ -878,6 +878,94 @@ export const TimeFilterProvider = ({ children }) => {
 export default TimeFilterContext;
 `);
 
+// Create Dashboard.js - Placeholder component
+console.log('Creating Dashboard.js placeholder...');
+fs.writeFileSync(path.join(srcDir, 'Dashboard.js'), `
+import React from 'react';
+import { useDataContext } from './DataContext';
+
+const Dashboard = () => {
+  const { data, isLoading } = useDataContext();
+  
+  if (isLoading) {
+    return <div className="loading-container">Loading dashboard data...</div>;
+  }
+  
+  return (
+    <div className="dashboard-container">
+      <h1>Dashboard</h1>
+      <p>This is a placeholder dashboard component.</p>
+    </div>
+  );
+};
+
+export default Dashboard;
+`);
+
+// Create IntelligenceEngine.js - Placeholder component
+console.log('Creating IntelligenceEngine.js placeholder...');
+fs.writeFileSync(path.join(srcDir, 'IntelligenceEngine.js'), `
+import React from 'react';
+
+const IntelligenceEngine = () => {
+  return (
+    <div className="placeholder-tab card">
+      <div className="placeholder-content">Intelligence Engine Dashboard</div>
+    </div>
+  );
+};
+
+export default IntelligenceEngine;
+`);
+
+// Create LotCorrelationTracker.js - Placeholder component
+console.log('Creating LotCorrelationTracker.js placeholder...');
+fs.writeFileSync(path.join(srcDir, 'LotCorrelationTracker.js'), `
+import React from 'react';
+
+const LotCorrelationTracker = () => {
+  return (
+    <div className="placeholder-tab card">
+      <div className="placeholder-content">Lot Correlation Dashboard</div>
+    </div>
+  );
+};
+
+export default LotCorrelationTracker;
+`);
+
+// Create EnhancedVisualizations.js - Placeholder component
+console.log('Creating EnhancedVisualizations.js placeholder...');
+fs.writeFileSync(path.join(srcDir, 'EnhancedVisualizations.js'), `
+import React from 'react';
+
+const EnhancedVisualizations = () => {
+  return (
+    <div className="placeholder-tab card">
+      <div className="placeholder-content">Enhanced Visualizations Dashboard</div>
+    </div>
+  );
+};
+
+export default EnhancedVisualizations;
+`);
+
+// Create HistoricalAnalysis.js - Placeholder component
+console.log('Creating HistoricalAnalysis.js placeholder...');
+fs.writeFileSync(path.join(srcDir, 'HistoricalAnalysis.js'), `
+import React from 'react';
+
+const HistoricalAnalysis = () => {
+  return (
+    <div className="placeholder-tab card">
+      <div className="placeholder-content">Historical Analysis Dashboard</div>
+    </div>
+  );
+};
+
+export default HistoricalAnalysis;
+`);
+
 // Create index.js file - the entry point for React application
 console.log('Creating index.js - React entry point...');
 fs.writeFileSync(path.join(srcDir, 'index.js'), `
@@ -961,6 +1049,141 @@ body {
 .process-flow-header h1 {
   font-size: 24px;
   margin-bottom: 20px;
+}
+
+/* Loading and error states */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #e53935;
+}
+
+/* Placeholder components */
+.placeholder-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-content {
+  font-size: 24px;
+  color: #666;
+}
+
+.card {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+`);
+
+// Create enhanced-components.css for additional styling
+console.log('Creating enhanced-components.css for styling placeholders...');
+fs.writeFileSync(path.join(srcDir, 'enhanced-components.css'), `
+/* Enhanced component styles */
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.card-content {
+  margin-bottom: 16px;
+}
+
+.placeholder-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+}
+
+.placeholder-content {
+  font-size: 24px;
+  color: #777;
+  font-weight: 500;
+}
+
+/* Process step styling */
+.process-step-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.process-step-block {
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.step-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.step-name {
+  font-weight: 600;
+}
+
+.step-time {
+  color: #666;
+}
+
+.step-variation-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.variation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.variation-dot.high {
+  background-color: #f44336;
+}
+
+.variation-dot.medium {
+  background-color: #ff9800;
+}
+
+.variation-dot.low {
+  background-color: #4caf50;
 }
 `);
 
