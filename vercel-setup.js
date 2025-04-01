@@ -452,23 +452,8 @@ import HistoricalAnalysis from './HistoricalAnalysis';
  * Main application component with tab navigation
  */
 const App = () => {
-  // Check URL for initial tab selection
-  const [activeTab, setActiveTab] = useState(() => {
-    // Check URL hash for #process-flow or other tab indicators
-    const hash = window.location.hash.replace('#', '');
-    console.log('URL hash:', hash);
-    
-    // If hash matches a valid tab, use that
-    if (['dashboard', 'intelligence', 'process-flow', 'lot-analytics', 
-         'customer-comments', 'insights'].includes(hash)) {
-      console.log('Setting initial tab from URL:', hash);
-      return hash;
-    }
-    
-    // Default to process-flow for testing
-    console.log('No valid hash found, defaulting to process-flow');
-    return 'process-flow';
-  });
+  // Always start with Dashboard tab selected by default
+  const [activeTab, setActiveTab] = useState('dashboard');
   
   // Update URL when tab changes
   useEffect(() => {
@@ -549,7 +534,7 @@ const App = () => {
   ];
 
   // Get the active component to render
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || ProcessAnalysis;
+  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || Dashboard;
   console.log('Rendering component for tab:', activeTab, 'Component:', ActiveComponent?.name || 'Unknown');
   
   return (
@@ -1038,27 +1023,29 @@ body {
   background-color: #1a73e8;
 }
 
-/* Process Flow styles */
-.process-flow-container {
-  padding: 20px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.process-flow-header h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
-}
-
 /* Loading and error states */
 .loading-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 300px;
   font-size: 18px;
   color: #666;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #1a73e8;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .error-container {
@@ -1068,6 +1055,16 @@ body {
   justify-content: center;
   height: 300px;
   color: #e53935;
+}
+
+.refresh-button {
+  padding: 8px 16px;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  margin-top: 16px;
+  cursor: pointer;
 }
 
 /* Placeholder components */
@@ -1089,6 +1086,235 @@ body {
 .card {
   padding: 20px;
   margin-bottom: 20px;
+}
+
+/* Process Flow specific styles */
+.process-flow-container {
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.process-flow-header h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.process-flow-timeline-container {
+  overflow: hidden;
+  position: relative;
+  padding: 20px 0;
+}
+
+.process-flow-visualization {
+  position: relative;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.timeline-start, .timeline-end {
+  font-weight: 500;
+}
+
+.timeline-scale {
+  position: relative;
+  height: 24px;
+  margin-bottom: 20px;
+}
+
+.timeline-marker {
+  position: absolute;
+}
+
+.timeline-tick {
+  width: 1px;
+  height: 8px;
+  background-color: #ddd;
+  margin: 0 auto 4px;
+}
+
+.timeline-label {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+}
+
+.process-steps {
+  position: relative;
+  min-height: 200px;
+}
+
+.process-step-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+  height: 80px;
+}
+
+.process-step-block {
+  position: absolute;
+  height: 64px;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.process-step-block:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.bottleneck {
+  background-color: #ffebee;
+  border-left: 3px solid #f44336;
+}
+
+.step-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.step-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.step-time {
+  font-size: 12px;
+  color: #666;
+}
+
+.trend-indicator {
+  margin-left: 4px;
+}
+
+.trend-indicator.increasing {
+  color: #f44336;
+}
+
+.trend-indicator.decreasing {
+  color: #4caf50;
+}
+
+.trend-indicator.stable {
+  color: #ff9800;
+}
+
+.step-target-bar {
+  height: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  position: relative;
+  margin: 8px 0;
+}
+
+.step-target-marker {
+  position: absolute;
+  width: 2px;
+  height: 8px;
+  background-color: #333;
+  transform: translateX(-1px) translateY(-2px);
+}
+
+.step-variation-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #777;
+}
+
+.variation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.variation-dot.high {
+  background-color: #f44336;
+}
+
+.variation-dot.medium {
+  background-color: #ff9800;
+}
+
+.variation-dot.low {
+  background-color: #4caf50;
+}
+
+.step-details-panel {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  padding: 16px;
+}
+
+.bottleneck-indicator {
+  display: inline-block;
+  background-color: #f44336;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-top: 6px;
+}
+
+.step-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.step-metric {
+  background-color: #f5f7fa;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.metric-name {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.step-recommendations h4 {
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+.recommendations-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.recommendations-list li {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.process-flow-instructions {
+  text-align: center;
+  margin-top: 16px;
+  color: #888;
 }
 `);
 

@@ -13,6 +13,7 @@
   "routes": [
     { "handle": "filesystem" },
     { "src": "/data/(.*)", "dest": "/data/$1" },
+    { "src": "/(.*\\.(json|svg|jpg|png|ico|woff|woff2))", "dest": "/$1" },
     { "src": "/.*", "dest": "/index.html" }
   ]
 } 
