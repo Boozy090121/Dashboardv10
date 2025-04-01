@@ -619,15 +619,41 @@ export default Dashboard;
 // Create App.js
 console.log('Creating App.js...');
 fs.writeFileSync(path.join(srcDir, 'App.js'), `
-import React from 'react';
+import React, { useState } from 'react';
 import { DataProvider } from './DataContext';
 import Dashboard from './Dashboard';
 
 const App = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Define all available tabs
+  const tabs = [
+    { id: 'dashboard', label: 'Dashboard', component: Dashboard },
+    { id: 'process', label: 'Process Flow', component: () => <div className="placeholder-tab">Process Flow Visualization</div> },
+    { id: 'lots', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
+    { id: 'comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
+    { id: 'insights', label: 'Insights', component: () => <div className="placeholder-tab">Data Insights Dashboard</div> }
+  ];
+
+  // Get the active component to render
+  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || Dashboard;
+  
   return (
     <DataProvider>
       <div className="app-container">
-        <Dashboard />
+        <div className="tabs-container">
+          {tabs.map(tab => (
+            <button 
+              key={tab.id}
+              className={\`tab-button \${activeTab === tab.id ? 'active' : ''}\`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        
+        <ActiveComponent />
       </div>
     </DataProvider>
   );
@@ -1096,7 +1122,6 @@ export default AdvancedChart;
 console.log('Creating DashboardGrid.js...');
 fs.writeFileSync(path.join(srcDir, 'DashboardGrid.js'), `
 import React from 'react';
-import { RefreshCw } from 'lucide-react';
 
 // Widget component
 const Widget = ({ children, title, size = 'medium', onRefresh = null }) => {
@@ -1120,7 +1145,21 @@ const Widget = ({ children, title, size = 'medium', onRefresh = null }) => {
         <h3 className="widget-title">{title}</h3>
         {onRefresh && (
           <button className="refresh-widget-button" onClick={handleRefresh}>
-            <RefreshCw size={16} />
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M21 12a9 9 0 0 1-9 9c-2.52 0-4.93-1.06-6.7-2.82"></path>
+              <path d="M21 12a9 9 0 0 0-9-9c-2.52 0-4.93 1.06-6.7 2.82"></path>
+              <path d="m3 12 3-3 3 3"></path>
+            </svg>
           </button>
         )}
       </div>
@@ -1168,6 +1207,48 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+}
+
+/* Tabs navigation */
+.tabs-container {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab-button.active {
+  color: #1a73e8;
+  border-bottom-color: #1a73e8;
+}
+
+.tab-button:hover:not(.active) {
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.placeholder-tab {
+  background-color: white;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  font-size: 16px;
+  color: #6b7280;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* Dashboard styles */
@@ -1256,6 +1337,12 @@ body {
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   position: relative;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .metric-header {
@@ -1432,6 +1519,12 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.widget:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
 .widget-header {
@@ -1504,11 +1597,13 @@ body {
   font-size: 12px;
   color: #6b7280;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .back-button:hover, .download-button:hover {
   background-color: #f9fafb;
   color: #4b5563;
+  border-color: #d1d5db;
 }
 
 /* Pie Chart Styles */
@@ -1530,6 +1625,20 @@ body {
   flex-direction: column;
   align-items: center;
   min-width: 100px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.pie-segment-container:hover {
+  transform: translateY(-2px);
+}
+
+.pie-segment {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .pie-label {
@@ -1541,6 +1650,19 @@ body {
 .pie-value {
   font-weight: 500;
   margin-top: 4px;
+}
+
+.pie-visual {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Bar Chart Styles */
@@ -1558,6 +1680,7 @@ body {
   flex-direction: column;
   align-items: center;
   height: 100%;
+  cursor: pointer;
 }
 
 .bar-container {
@@ -1567,6 +1690,11 @@ body {
   justify-content: flex-end;
   width: 30px;
   height: 80%;
+  transition: transform 0.2s;
+}
+
+.bar-item:hover .bar-container {
+  transform: translateY(-5px);
 }
 
 .bar {
@@ -1577,6 +1705,7 @@ body {
   align-items: flex-start;
   justify-content: center;
   min-height: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .bar-value {
@@ -1619,6 +1748,10 @@ body {
   position: relative;
 }
 
+.line-chart-visual svg {
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+}
+
 .line-chart-labels {
   display: flex;
   justify-content: space-between;
@@ -1642,6 +1775,9 @@ body {
   text-align: center;
   min-height: 300px;
   padding: 40px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .loading-spinner {
@@ -1670,6 +1806,12 @@ body {
   color: #1a73e8;
   font-weight: 500;
   border-radius: 8px 8px 0 0;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Header banner/artwork */
@@ -1683,10 +1825,29 @@ body {
   width: 120px;
   margin-bottom: 10px;
   border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .novo-gradient {
   background: linear-gradient(to right, #db0032, #0066a4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
 }
 `);
 
