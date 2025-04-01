@@ -35,7 +35,33 @@ if (!fs.existsSync(indexHtmlFile)) {
     <title>Manufacturing Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Set initial tab to Process Flow for testing
+      window.location.hash = 'process-flow';
+      
+      // Add debug listeners for data loading
+      window.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, checking for data directory');
+        
+        // Test if data file is accessible
+        fetch('/data/complete-data.json')
+          .then(response => {
+            console.log('Data fetch response:', response.status);
+            if (!response.ok) {
+              throw new Error('Failed to fetch data file: ' + response.status);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Data file loaded successfully, has process flow:', 
+                      Boolean(data?.commercialProcess?.processFlow));
+          })
+          .catch(error => {
+            console.error('Error fetching data file:', error);
+          });
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -47,13 +73,13 @@ if (!fs.existsSync(indexHtmlFile)) {
   console.log('index.html already exists, skipping creation.');
 }
 
-// Ensure data file exists
+// Ensure data file exists with complete data including processFlow
 const dataFile = path.join(dataDir, 'complete-data.json');
 if (!fs.existsSync(dataFile)) {
-  console.log('Creating sample data file...');
+  console.log('Creating complete data file with processFlow data...');
   
-  // Sample dashboard data
-  const sampleData = {
+  // Full dashboard data with processFlow
+  const completeData = {
     "overview": {
       "totalRecords": 1245,
       "totalLots": 78,
@@ -80,6 +106,14 @@ if (!fs.existsSync(dataFile)) {
         { "month": "Apr", "recordRFT": 91.5, "lotRFT": 92.3 },
         { "month": "May", "recordRFT": 92.3, "lotRFT": 93.5 },
         { "month": "Jun", "recordRFT": 93.1, "lotRFT": 94.0 }
+      ],
+      "rftByMonth": [
+        { "month": "Jan", "value": 90.2 },
+        { "month": "Feb", "value": 91.4 },
+        { "month": "Mar", "value": 92.8 },
+        { "month": "Apr", "value": 91.5 },
+        { "month": "May", "value": 92.3 },
+        { "month": "Jun", "value": 93.1 }
       ]
     },
     "processMetrics": {
@@ -113,15 +147,137 @@ if (!fs.existsSync(dataFile)) {
         { "department": "Quality", "rftRate": 95.4, "pass": 248, "fail": 12 },
         { "department": "Packaging", "rftRate": 91.2, "pass": 187, "fail": 18 },
         { "department": "Logistics", "rftRate": 86.7, "pass": 156, "fail": 24 }
+      ],
+      "detailedAnalysis": {
+        "departmentByMonth": [
+          { "month": "Jan", "Production": 91.2, "Quality": 93.5, "Packaging": 89.8, "Logistics": 84.3 },
+          { "month": "Feb", "Production": 91.8, "Quality": 94.0, "Packaging": 90.1, "Logistics": 84.9 },
+          { "month": "Mar", "Production": 92.4, "Quality": 94.5, "Packaging": 90.5, "Logistics": 85.5 },
+          { "month": "Apr", "Production": 93.0, "Quality": 94.9, "Packaging": 90.8, "Logistics": 86.0 },
+          { "month": "May", "Production": 93.4, "Quality": 95.2, "Packaging": 91.0, "Logistics": 86.3 },
+          { "month": "Jun", "Production": 93.7, "Quality": 95.4, "Packaging": 91.2, "Logistics": 86.7 }
+        ],
+        "errorTypes": [
+          { "department": "Production", "Documentation": 10, "Process": 6, "Equipment": 4, "Material": 2 },
+          { "department": "Quality", "Documentation": 6, "Process": 3, "Equipment": 2, "Material": 1 },
+          { "department": "Packaging", "Documentation": 8, "Process": 5, "Equipment": 3, "Material": 2 },
+          { "department": "Logistics", "Documentation": 12, "Process": 6, "Equipment": 4, "Material": 2 }
+        ]
+      }
+    },
+    "externalRFT": {
+      "records": [
+        { "id": "EXT-1001", "date": "2023-06-01", "lot": "B1001", "customer": "Customer A", "product": "Product A", "issueType": "Documentation", "status": "Closed" }
+      ],
+      "summary": {
+        "totalComplaints": 100,
+        "resolvedComplaints": 82,
+        "pendingComplaints": 18,
+        "resolutionRate": "82.0"
+      },
+      "customerComments": [
+        { "name": "Documentation", "count": 38, "sentiment": "negative" },
+        { "name": "Quality", "count": 27, "sentiment": "negative" },
+        { "name": "Delivery", "count": 18, "sentiment": "neutral" },
+        { "name": "Packaging", "count": 12, "sentiment": "positive" },
+        { "name": "Other", "count": 5, "sentiment": "neutral" }
       ]
+    },
+    "commercialProcess": {
+      "records": [
+        { "id": "CP-1001", "date": "2023-06-01", "lot": "B1001", "product": "Product A", "stage": "Assembly", "duration": 3.5, "status": "Completed", "deviation": false },
+        { "id": "CP-1002", "date": "2023-06-05", "lot": "B1002", "product": "Product B", "stage": "Quality Control", "duration": 2.8, "status": "In Progress", "deviation": true },
+        { "id": "CP-1003", "date": "2023-06-10", "lot": "B1003", "product": "Product C", "stage": "Packaging", "duration": 2.4, "status": "On Hold", "deviation": true }
+      ],
+      "summary": {
+        "totalLots": 78,
+        "completedLots": 72,
+        "inProgressLots": 4,
+        "onHoldLots": 2,
+        "completionRate": "92.3"
+      },
+      "processFlow": [
+        { "name": "Assembly", "count": 78, "avgDuration": 3.5, "deviationRate": "5.1" },
+        { "name": "Quality Control", "count": 76, "avgDuration": 2.8, "deviationRate": "8.2" },
+        { "name": "Packaging", "count": 74, "avgDuration": 2.4, "deviationRate": "4.1" },
+        { "name": "Final Review", "count": 72, "avgDuration": 1.8, "deviationRate": "2.8" }
+      ],
+      "insights": [
+        "Quality control stage accounts for 40% of the total process time",
+        "Deviations occur most frequently during the filling stage",
+        "Process efficiency has improved by 15% since last quarter"
+      ],
+      "cycleTimeData": {
+        "targetTime": 10.5,
+        "stagesData": [
+          { "name": "Assembly", "target": 3.0, "actual": 3.5, "min": 2.8, "max": 4.2 },
+          { "name": "Quality Control", "target": 2.5, "actual": 2.8, "min": 2.2, "max": 3.5 },
+          { "name": "Packaging", "target": 2.0, "actual": 2.4, "min": 1.8, "max": 3.0 },
+          { "name": "Final Review", "target": 1.5, "actual": 1.8, "min": 1.3, "max": 2.5 }
+        ],
+        "trendData": [
+          { "month": "Jan", "value": 12.5 },
+          { "month": "Feb", "value": 12.1 },
+          { "month": "Mar", "value": 11.7 },
+          { "month": "Apr", "value": 11.3 },
+          { "month": "May", "value": 10.9 },
+          { "month": "Jun", "value": 10.5 }
+        ]
+      }
     }
   };
 
-  // Write the sample data to the file
-  fs.writeFileSync(dataFile, JSON.stringify(sampleData, null, 2));
-  console.log('Sample data file created successfully!');
+  // Write the complete data to the file
+  fs.writeFileSync(dataFile, JSON.stringify(completeData, null, 2));
+  console.log('Complete data file created successfully with processFlow data!');
 } else {
-  console.log('Data file already exists, skipping creation.');
+  // Update existing data file to ensure it has the processFlow component
+  console.log('Data file exists, ensuring it has processFlow data...');
+  try {
+    const existingData = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+    
+    // Check if processFlow exists
+    if (!existingData.commercialProcess || !existingData.commercialProcess.processFlow) {
+      console.log('Adding processFlow data to existing data file...');
+      
+      // Ensure commercialProcess exists
+      if (!existingData.commercialProcess) {
+        existingData.commercialProcess = {};
+      }
+      
+      // Add processFlow data
+      existingData.commercialProcess.processFlow = [
+        { "name": "Assembly", "count": 78, "avgDuration": 3.5, "deviationRate": "5.1" },
+        { "name": "Quality Control", "count": 76, "avgDuration": 2.8, "deviationRate": "8.2" },
+        { "name": "Packaging", "count": 74, "avgDuration": 2.4, "deviationRate": "4.1" },
+        { "name": "Final Review", "count": 72, "avgDuration": 1.8, "deviationRate": "2.8" }
+      ];
+      
+      // Update the file
+      fs.writeFileSync(dataFile, JSON.stringify(existingData, null, 2));
+      console.log('Updated existing data file with processFlow data!');
+    } else {
+      console.log('Existing data file already has processFlow data.');
+    }
+  } catch (error) {
+    console.error('Error updating data file:', error);
+    console.log('Creating new data file with complete data...');
+    
+    // Create a basic data file with the essential processFlow data
+    const basicData = {
+      commercialProcess: {
+        processFlow: [
+          { "name": "Assembly", "count": 78, "avgDuration": 3.5, "deviationRate": "5.1" },
+          { "name": "Quality Control", "count": 76, "avgDuration": 2.8, "deviationRate": "8.2" },
+          { "name": "Packaging", "count": 74, "avgDuration": 2.4, "deviationRate": "4.1" },
+          { "name": "Final Review", "count": 72, "avgDuration": 1.8, "deviationRate": "2.8" }
+        ]
+      }
+    };
+    
+    fs.writeFileSync(dataFile, JSON.stringify(basicData, null, 2));
+    console.log('Created new data file with essential processFlow data!');
+  }
 }
 
 // Ensure src directory exists
@@ -131,8 +287,8 @@ if (!fs.existsSync(srcDir)) {
   fs.mkdirSync(srcDir, { recursive: true });
 }
 
-// Create DataContext.js
-console.log('Creating DataContext.js...');
+// Create DataContext.js with enhanced logging
+console.log('Creating DataContext.js with enhanced logging...');
 fs.writeFileSync(path.join(srcDir, 'DataContext.js'), `
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
@@ -189,6 +345,7 @@ export const DataProvider = ({ children }) => {
     
     try {
       // Fetch data with abort signal
+      console.log('Fetching data from:', \`\${window.location.origin}/data/complete-data.json\`);
       const response = await fetch(\`\${window.location.origin}/data/complete-data.json\`, { signal });
       
       // Check if component is still mounted
@@ -202,14 +359,26 @@ export const DataProvider = ({ children }) => {
       
       // Check if component is still mounted before updating state
       if (isMountedRef.current) {
+        console.log('Dashboard data loaded successfully');
+        
+        // Check for processFlow data specifically
+        if (data && data.commercialProcess && data.commercialProcess.processFlow) {
+          console.log('ProcessFlow data found:', data.commercialProcess.processFlow);
+        } else {
+          console.warn('ProcessFlow data not found in loaded JSON!');
+          if (data && data.commercialProcess) {
+            console.log('commercialProcess keys:', Object.keys(data.commercialProcess));
+          } else if (data) {
+            console.log('Top-level keys:', Object.keys(data));
+          }
+        }
+        
         setState({
           isLoading: false,
           error: null,
           data,
           lastUpdated: new Date()
         });
-        
-        console.log('Dashboard data loaded successfully');
       }
     } catch (error) {
       // Don't update state if the error was due to an aborted fetch
@@ -266,396 +435,143 @@ export const DataProvider = ({ children }) => {
 export default DataContext;
 `);
 
-// Create Dashboard.js (abbreviated version for space)
-console.log('Creating Dashboard.js...');
-fs.writeFileSync(path.join(srcDir, 'Dashboard.js'), `
-import React, { useMemo, useState, useCallback } from 'react';
-import { useDataContext } from './DataContext';
-import DashboardGrid from './DashboardGrid';
-import MetricCard from './MetricCard';
-import AdvancedChart from './AdvancedChart';
+// Create App.js with proper routing and DEBUG logging
+console.log('Creating App.js with enhanced routing...');
+fs.writeFileSync(path.join(srcDir, 'App.js'), `
+import React, { useState, useEffect } from 'react';
+import { DataProvider } from './DataContext';
+import { TimeFilterProvider } from './TimeFilterContext';
+import Dashboard from './Dashboard';
+import ProcessAnalysis from './ProcessAnalysis';
+import IntelligenceEngine from './IntelligenceEngine';
+import LotCorrelationTracker from './LotCorrelationTracker';
+import EnhancedVisualizations from './EnhancedVisualizations';
+import HistoricalAnalysis from './HistoricalAnalysis';
 
-const Dashboard = () => {
-  const { data, isLoading, error, refreshData, lastUpdated } = useDataContext();
-  const [timeRange, setTimeRange] = useState('6m'); // 1m, 3m, 6m, 12m, ytd
-  
-  // Memoize calculated values to prevent recalculations on re-render
-  const metrics = useMemo(() => {
-    if (!data || !data.overview) {
-      return {
-        totalRecords: 0,
-        totalLots: 0,
-        rftRate: 0,
-        issueCount: 0
-      };
+/**
+ * Main application component with tab navigation
+ */
+const App = () => {
+  // Check URL for initial tab selection
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check URL hash for #process-flow or other tab indicators
+    const hash = window.location.hash.replace('#', '');
+    console.log('URL hash:', hash);
+    
+    // If hash matches a valid tab, use that
+    if (['dashboard', 'intelligence', 'process-flow', 'lot-analytics', 
+         'customer-comments', 'insights'].includes(hash)) {
+      console.log('Setting initial tab from URL:', hash);
+      return hash;
     }
     
-    return {
-      totalRecords: data.overview.totalRecords || 0,
-      totalLots: data.overview.totalLots || 0,
-      rftRate: data.overview.overallRFTRate || 0,
-      issueCount: data.overview.issueDistribution 
-        ? data.overview.issueDistribution.reduce((sum, item) => sum + item.value, 0) 
-        : 0
-    };
-  }, [data]);
+    // Default to process-flow for testing
+    console.log('No valid hash found, defaulting to process-flow');
+    return 'process-flow';
+  });
   
-  // Generate trend data for cycle time
-  const cycleTimeTrendData = useMemo(() => {
-    if (data?.processMetrics?.cycleTimesByMonth) {
-      return data.processMetrics.cycleTimesByMonth.map(item => ({
-        month: item.month,
-        value: item.averageCycleTime
-      }));
+  // Update URL when tab changes
+  useEffect(() => {
+    console.log('Active tab changed to:', activeTab);
+    window.location.hash = activeTab;
+  }, [activeTab]);
+  
+  // Define all available tabs to match the existing structure
+  const tabs = [
+    { 
+      id: 'dashboard', 
+      label: 'Dashboard',
+      component: Dashboard,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      )
+    },
+    { 
+      id: 'process-flow', 
+      label: 'Process Flow',
+      component: ProcessAnalysis,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3v18h18"></path>
+          <path d="m7 17 4-8 4 4 4-10"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'lot-analytics', 
+      label: 'Lot Analytics',
+      component: LotCorrelationTracker,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 20v-6"></path>
+          <path d="M6 20v-6"></path>
+          <path d="M18 20v-6"></path>
+          <path d="M6 14c0-4 2-8 6-8s6 4 6 8"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'customer-comments', 
+      label: 'Customer Comments',
+      component: () => <div className="placeholder-tab card"><div className="placeholder-content">Customer Comment Analysis Dashboard</div></div>,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'intelligence', 
+      label: 'Intelligence Engine',
+      component: IntelligenceEngine,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2a8 8 0 0 0-8 8c0 5 6 10 8 10s8-5 8-10a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'insights', 
+      label: 'Insights',
+      component: HistoricalAnalysis,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 8v4l3 3"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+      )
     }
-    
-    // Default mock data
-    return [
-      { month: '2025-01', value: 21.2 },
-      { month: '2025-02', value: 22.5 },
-      { month: '2025-03', value: 20.8 },
-      { month: '2025-04', value: 21.5 },
-      { month: '2025-05', value: 19.8 },
-      { month: '2025-06', value: 18.5 }
-    ];
-  }, [data]);
-  
-  // Generate dept performance data
-  const deptPerformanceData = useMemo(() => {
-    if (data?.internalRFT?.departmentPerformance) {
-      return data.internalRFT.departmentPerformance.map(dept => ({
-        name: dept.department,
-        rftRate: dept.rftRate,
-        target: 95
-      }));
-    }
-    
-    // Default mock data
-    return [
-      { name: 'Production', rftRate: 93.7, target: 95 },
-      { name: 'Quality', rftRate: 95.4, target: 95 },
-      { name: 'Packaging', rftRate: 91.2, target: 95 },
-      { name: 'Logistics', rftRate: 86.7, target: 95 }
-    ];
-  }, [data]);
-  
-  // Handle widget refresh
-  const handleRefresh = useCallback((widgetId) => {
-    console.log(\`Refreshing widget: \${widgetId}\`);
-    refreshData();
-  }, [refreshData]);
-  
-  // Generate RFT breakdown data for drill-down
-  const handleRftDrillDown = useCallback((clickedData) => {
-    // Generate breakdown data based on clicked slice
-    if (clickedData?.name === 'Pass') {
-      return {
-        title: 'Success Breakdown by Department',
-        data: [
-          { name: 'Production', value: data?.internalRFT?.departmentPerformance?.[0]?.pass || 328 },
-          { name: 'Quality', value: data?.internalRFT?.departmentPerformance?.[1]?.pass || 248 },
-          { name: 'Packaging', value: data?.internalRFT?.departmentPerformance?.[2]?.pass || 187 },
-          { name: 'Logistics', value: data?.internalRFT?.departmentPerformance?.[3]?.pass || 156 }
-        ]
-      };
-    } else {
-      return {
-        title: 'Error Breakdown by Type',
-        data: data?.overview?.issueDistribution || [
-          { name: 'Documentation Error', value: 42 },
-          { name: 'Process Deviation', value: 28 },
-          { name: 'Equipment Issue', value: 15 },
-          { name: 'Material Issue', value: 11 }
-        ]
-      };
-    }
-  }, [data]);
-  
-  // Loading state
-  if (isLoading && !data) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading dashboard data...</p>
-      </div>
-    );
-  }
-  
-  // Error state
-  if (error && !data) {
-    return (
-      <div className="error-container">
-        <div className="error-icon">⚠️</div>
-        <h3>Error Loading Data</h3>
-        <p>{error}</p>
-        <button onClick={refreshData} className="refresh-button">
-          Try Again
-        </button>
-      </div>
-    );
-  }
+  ];
+
+  // Get the active component to render
+  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || ProcessAnalysis;
+  console.log('Rendering component for tab:', activeTab, 'Component:', ActiveComponent?.name || 'Unknown');
   
   return (
-    <div className="dashboard-container">
-      {/* Header with time range selector */}
-      <div className="dashboard-header">
-        <div className="header-with-banner">
-          <div className="header-banner novo-gradient"></div>
-          <h1>Manufacturing Dashboard</h1>
-        </div>
-        
-        <div className="header-actions">
-          <div className="time-range-controls">
-            {['1m', '3m', '6m', '12m', 'ytd'].map((range) => (
-              <button
-                key={range}
-                className={\`time-range-button \${timeRange === range ? 'active' : ''}\`}
-                onClick={() => setTimeRange(range)}
+    <DataProvider>
+      <TimeFilterProvider>
+        <div className="app-container">
+          <div className="tabs-container">
+            {tabs.map(tab => (
+              <button 
+                key={tab.id}
+                className={\`tab-button \${activeTab === tab.id ? 'active' : ''}\`}
+                onClick={() => setActiveTab(tab.id)}
               >
-                {range.toUpperCase()}
+                {tab.icon}
+                <span className="tab-label">{tab.label}</span>
               </button>
             ))}
           </div>
           
-          <button onClick={refreshData} className="refresh-button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
-                 stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12a9 9 0 0 1-9 9c-2.52 0-4.93-1.06-6.7-2.82"></path>
-              <path d="M21 12a9 9 0 0 0-9-9c-2.52 0-4.93 1.06-6.7 2.82"></path>
-              <path d="m3 12 3-3 3 3"></path>
-            </svg>
-            Refresh Data
-          </button>
-          
-          {lastUpdated && (
-            <div className="last-updated">
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </div>
-          )}
+          <ActiveComponent />
         </div>
-      </div>
-      
-      {/* Metric cards */}
-      <div className="metrics-grid">
-        <MetricCard
-          title="Total Records"
-          value={data?.overview?.totalRecords || 1245}
-          previousValue={data?.overview?.totalRecords ? data.overview.totalRecords - 25 : 1220}
-          trend="up"
-          trendData={[
-            { value: 1190 },
-            { value: 1205 },
-            { value: 1215 },
-            { value: 1220 },
-            { value: 1235 },
-            { value: data?.overview?.totalRecords || 1245 }
-          ]}
-          showDetails={true}
-          detailMetrics={[
-            { label: 'Production', value: 458 },
-            { label: 'Quality', value: 326 },
-            { label: 'Packaging', value: 278 },
-            { label: 'Logistics', value: 183 }
-          ]}
-        />
-        
-        <MetricCard
-          title="Total Lots"
-          value={data?.overview?.totalLots || 78}
-          previousValue={data?.overview?.totalLots ? data.overview.totalLots - 2 : 76}
-          trend="up"
-          status={data?.overview?.totalLots > 80 ? 'warning' : 'normal'}
-          trendData={[
-            { value: 71 },
-            { value: 73 },
-            { value: 74 },
-            { value: 76 },
-            { value: 77 },
-            { value: data?.overview?.totalLots || 78 }
-          ]}
-          showDetails={true}
-          detailMetrics={[
-            { label: 'Released', value: 65 },
-            { label: 'In Process', value: 13 }
-          ]}
-        />
-        
-        <MetricCard
-          title="Overall RFT Rate"
-          value={data?.overview?.overallRFTRate || 92.3}
-          previousValue={data?.overview?.overallRFTRate ? data.overview.overallRFTRate - 1.5 : 90.8}
-          trend="up"
-          percentage={true}
-          status={
-            (data?.overview?.overallRFTRate || 92.3) >= 95 ? 'success' : 
-            (data?.overview?.overallRFTRate || 92.3) >= 90 ? 'normal' :
-            (data?.overview?.overallRFTRate || 92.3) >= 85 ? 'warning' : 'critical'
-          }
-          goal={95}
-          goalLabel="Target RFT"
-          trendData={[
-            { value: 88.5 },
-            { value: 89.2 },
-            { value: 90.1 },
-            { value: 90.8 },
-            { value: 91.5 },
-            { value: data?.overview?.overallRFTRate || 92.3 }
-          ]}
-          showDetails={true}
-          detailMetrics={[
-            { label: 'Record Level', value: data?.overview?.overallRFTRate || 92.3 },
-            { label: 'Lot Level', value: data?.overview?.lotQuality?.percentage || 95.3 }
-          ]}
-        />
-        
-        <MetricCard
-          title="Avg. Cycle Time"
-          value={data?.processMetrics?.totalCycleTime?.average || 21.8}
-          previousValue={data?.processMetrics?.totalCycleTime?.average ? data.processMetrics.totalCycleTime.average + 2.3 : 24.1}
-          trend="down"
-          goal={data?.processMetrics?.totalCycleTime?.target || 18.0}
-          goalLabel="Target Time"
-          status={
-            (data?.processMetrics?.totalCycleTime?.average || 21.8) <= 18 ? 'success' : 
-            (data?.processMetrics?.totalCycleTime?.average || 21.8) <= 22 ? 'normal' :
-            (data?.processMetrics?.totalCycleTime?.average || 21.8) <= 25 ? 'warning' : 'critical'
-          }
-          trendData={cycleTimeTrendData}
-          showDetails={true}
-          detailMetrics={[
-            { label: 'Min Observed', value: data?.processMetrics?.totalCycleTime?.minimum || 16.2 },
-            { label: 'Max Observed', value: data?.processMetrics?.totalCycleTime?.maximum || 36.2 }
-          ]}
-        />
-      </div>
-      
-      {/* Charts grid */}
-      <DashboardGrid>
-        <DashboardGrid.Widget
-          title="RFT Performance"
-          size="medium"
-          onRefresh={() => handleRefresh('rft-performance')}
-        >
-          <AdvancedChart
-            title="Pass vs. Fail Distribution"
-            data={data?.overview?.rftPerformance || [
-              { name: 'Pass', value: 1149, percentage: 92.3 },
-              { name: 'Fail', value: 96, percentage: 7.7 }
-            ]}
-            type="pie"
-            xDataKey="name"
-            yDataKey="value"
-            onDrillDown={handleRftDrillDown}
-            height={300}
-          />
-        </DashboardGrid.Widget>
-        
-        <DashboardGrid.Widget
-          title="Issue Distribution"
-          size="medium"
-          onRefresh={() => handleRefresh('issue-distribution')}
-        >
-          <AdvancedChart
-            title="Top Issues by Count"
-            data={data?.overview?.issueDistribution || [
-              { name: 'Documentation Error', value: 42 },
-              { name: 'Process Deviation', value: 28 },
-              { name: 'Equipment Issue', value: 15 },
-              { name: 'Material Issue', value: 11 }
-            ]}
-            type="bar"
-            xDataKey="name"
-            yDataKey="value"
-            height={300}
-            allowDownload={true}
-          />
-        </DashboardGrid.Widget>
-        
-        <DashboardGrid.Widget
-          title="Department Performance"
-          size="medium"
-          onRefresh={() => handleRefresh('dept-performance')}
-        >
-          <AdvancedChart
-            title="RFT Rate by Department"
-            data={deptPerformanceData}
-            type="bar"
-            xDataKey="name"
-            yDataKey="rftRate"
-            percentage={true}
-            comparisonValue={95}
-            comparisonLabel="Target RFT"
-            height={300}
-          />
-        </DashboardGrid.Widget>
-        
-        <DashboardGrid.Widget
-          title="Lot Quality"
-          size="medium"
-          onRefresh={() => handleRefresh('lot-quality')}
-        >
-          <AdvancedChart
-            title="Lot Level RFT"
-            data={[
-              { name: 'Pass', value: data?.overview?.lotQuality?.pass || 72 },
-              { name: 'Fail', value: data?.overview?.lotQuality?.fail || 6 }
-            ]}
-            type="donut"
-            xDataKey="name"
-            yDataKey="value"
-            height={300}
-          />
-        </DashboardGrid.Widget>
-      </DashboardGrid>
-      
-      {isLoading && <div className="overlay-loading">Refreshing...</div>}
-    </div>
-  );
-};
-
-export default Dashboard;
-`);
-
-// Create App.js
-console.log('Creating App.js...');
-fs.writeFileSync(path.join(srcDir, 'App.js'), `
-import React, { useState } from 'react';
-import { DataProvider } from './DataContext';
-import Dashboard from './Dashboard';
-import ProcessAnalysis from './ProcessAnalysis';
-
-const App = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
-  // Define all available tabs to match the existing structure
-  const tabs = [
-    { id: 'dashboard', label: 'Dashboard', component: Dashboard },
-    { id: 'process-flow', label: 'Process Flow', component: ProcessAnalysis },
-    { id: 'lot-analytics', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
-    { id: 'customer-comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
-    { id: 'insights', label: 'Insights', component: () => <div className="placeholder-tab">Data Insights Dashboard</div> }
-  ];
-
-  // Get the active component to render
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || Dashboard;
-  
-  return (
-    <DataProvider>
-      <div className="app-container">
-        <div className="tabs-container">
-          {tabs.map(tab => (
-            <button 
-              key={tab.id}
-              className={\`tab-button \${activeTab === tab.id ? 'active' : ''}\`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        
-        <ActiveComponent />
-      </div>
+      </TimeFilterProvider>
     </DataProvider>
   );
 };
@@ -663,1678 +579,90 @@ const App = () => {
 export default App;
 `);
 
-// Create index.js
-console.log('Creating index.js...');
-fs.writeFileSync(path.join(srcDir, 'index.js'), `
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-
-// Initialize the application with React 18 syntax
-// Not using StrictMode to avoid double rendering effects
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-`);
-
-// Create basic component files
-// MetricCard.js
-console.log('Creating MetricCard.js...');
-fs.writeFileSync(path.join(srcDir, 'MetricCard.js'), `
-import React, { useState } from 'react';
-
-const MetricCard = ({
-  title,
-  value,
-  previousValue,
-  trend = 'neutral',
-  percentage = false,
-  goal,
-  goalLabel = 'Target',
-  status = 'normal',
-  showDetails = false,
-  detailMetrics = [],
-  trendData = []
-}) => {
-  const [showDetailView, setShowDetailView] = useState(false);
-  
-  const formatValue = (val) => {
-    if (val === undefined || val === null) return '-';
-    if (percentage) return val.toFixed(1) + '%';
-    return val.toLocaleString();
-  };
-  
-  const calculateTrendPercentage = () => {
-    if (!previousValue || previousValue === 0) return 0;
-    const change = ((value - previousValue) / previousValue) * 100;
-    return change.toFixed(1);
-  };
-
-  const trendPercentage = calculateTrendPercentage();
-  const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '–';
-  const trendClass = 
-    trend === 'up' ? 'text-green-500' : 
-    trend === 'down' ? 'text-red-500' : 
-    'text-gray-400';
-
-  const statusClass = 
-    status === 'success' ? 'border-l-4 border-green-500' : 
-    status === 'warning' ? 'border-l-4 border-yellow-500' : 
-    status === 'critical' ? 'border-l-4 border-red-500' : 
-    'border-l-4 border-transparent';
-
-  const toggleDetails = () => {
-    setShowDetailView(!showDetailView);
-  };
-
-  // Calculate goal percentage for progress bar
-  const goalPercentage = goal ? Math.min(100, (value / goal) * 100) : 0;
-  
-  // Calculate heights for mini chart bars
-  const maxTrendValue = trendData.length > 0 
-    ? Math.max(...trendData.map(item => item.value))
-    : 0;
-    
-  const getBarHeight = (val) => {
-    if (maxTrendValue === 0) return '0%';
-    return \`\${Math.max(10, (val / maxTrendValue) * 100)}%\`;
-  };
-
-  return (
-    <div className={\`metric-card \${statusClass}\`}>
-      <div className="metric-header">
-        <h3 className="metric-title">{title}</h3>
-        {showDetails && (
-          <button 
-            className="details-button" 
-            onClick={toggleDetails}
-            aria-label="Toggle details"
-          >
-            {showDetailView ? '−' : '+'}
-          </button>
-        )}
-      </div>
-      
-      <div className="metric-value-container">
-        <div className="metric-value">{formatValue(value)}</div>
-        
-        {previousValue !== undefined && (
-          <div className={\`metric-trend \${trendClass}\`}>
-            <span>{trendIcon}</span>
-            <span>{Math.abs(trendPercentage)}%</span>
-          </div>
-        )}
-      </div>
-      
-      {/* Progress toward goal */}
-      {goal && (
-        <div className="metric-goal">
-          <div className="goal-bar-container">
-            <div className="goal-bar-background">
-              <div 
-                className="goal-bar-progress"
-                style={{ width: \`\${goalPercentage}%\` }}
-              ></div>
-            </div>
-          </div>
-          <div className="goal-text">
-            <span>Current</span>
-            <span>{goalLabel}: {formatValue(goal)}</span>
-          </div>
-        </div>
-      )}
-      
-      {/* Mini chart */}
-      {trendData.length > 0 && (
-        <div className="metric-mini-chart">
-          {trendData.map((item, idx) => (
-            <div 
-              key={idx}
-              className="mini-chart-bar"
-              style={{ 
-                height: getBarHeight(item.value),
-                opacity: idx === trendData.length - 1 ? 1 : 0.6 + (idx * 0.1)
-              }}
-            ></div>
-          ))}
-        </div>
-      )}
-      
-      {/* Detail metrics */}
-      {showDetails && showDetailView && detailMetrics.length > 0 && (
-        <div className="metric-details">
-          <div className="details-header">
-            <h4>Details</h4>
-          </div>
-          <div className="details-content">
-            {detailMetrics.map((metric, idx) => (
-              <div key={idx} className="detail-item">
-                <span className="detail-label">{metric.label}</span>
-                <span className="detail-value">{formatValue(metric.value)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default MetricCard;
-`);
-
-// Create AdvancedChart.js (simplified)
-console.log('Creating AdvancedChart.js...');
-fs.writeFileSync(path.join(srcDir, 'AdvancedChart.js'), `
-import React, { useState, useCallback } from 'react';
-
-const AdvancedChart = ({
-  title,
-  description,
-  data = [],
-  type = 'bar', // 'bar', 'line', 'pie', 'donut', 'area'
-  xDataKey,
-  yDataKey,
-  categories = [],
-  height = 300,
-  percentage = false,
-  comparisonValue,
-  comparisonLabel,
-  allowDownload = false,
-  onDrillDown = null,
-}) => {
-  const [drillDownData, setDrillDownData] = useState(null);
-  
-  // Function to handle drill-down click
-  const handleDataPointClick = useCallback((item, index) => {
-    if (!onDrillDown) return;
-    
-    const drillDownResult = onDrillDown(item, index);
-    if (drillDownResult) {
-      setDrillDownData(drillDownResult);
-    }
-  }, [onDrillDown]);
-  
-  // Function to go back from drill-down view
-  const handleBackClick = useCallback(() => {
-    setDrillDownData(null);
-  }, []);
-  
-  // Function to simulate chart download
-  const handleDownload = useCallback(() => {
-    alert('Chart download simulation: Would download a PNG image of this chart');
-  }, []);
-  
-  // Data formatting helper
-  const formatValue = (value) => {
-    if (percentage) {
-      return \`\${value.toFixed(1)}%\`;
-    }
-    return value.toLocaleString();
-  };
-  
-  // Render different chart types based on the type prop
-  const renderChart = () => {
-    // If we have drill-down data, show that instead
-    const chartData = drillDownData ? drillDownData.data : data;
-    const chartTitle = drillDownData ? drillDownData.title : title;
-    
-    // Determine which data to render based on chart type
-    switch (type) {
-      case 'pie':
-      case 'donut':
-        return (
-          <div className="chart-container">
-            <h4 className="chart-title">{chartTitle}</h4>
-            <div 
-              className="chart-content pie-chart" 
-              style={{ height: height, position: 'relative' }}
-            >
-              <div className="pie-segments">
-                {chartData.map((item, index) => {
-                  const value = typeof yDataKey === 'string' ? item[yDataKey] : item.value;
-                  const name = typeof xDataKey === 'string' ? item[xDataKey] : item.name;
-                  const percentage = 
-                    item.percentage || 
-                    (chartData.reduce((sum, d) => sum + (typeof yDataKey === 'string' ? d[yDataKey] : d.value), 0) > 0
-                      ? (value / chartData.reduce((sum, d) => sum + (typeof yDataKey === 'string' ? d[yDataKey] : d.value), 0)) * 100
-                      : 0);
-                  
-                  // For visual purposes, generate colors
-                  const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-                  const color = colors[index % colors.length];
-                  
-                  // For donut chart, create a circle in the middle
-                  const isDonut = type === 'donut';
-                  
-                  return (
-                    <div 
-                      key={index}
-                      className="pie-segment-container"
-                      onClick={() => handleDataPointClick(item, index)}
-                      style={{ cursor: onDrillDown ? 'pointer' : 'default' }}
-                    >
-                      <div 
-                        className="pie-segment" 
-                        style={{ 
-                          backgroundColor: color,
-                          width: '80px',
-                          height: '80px',
-                          marginBottom: '10px',
-                          borderRadius: '5px'
-                        }}
-                      ></div>
-                      <div className="pie-label">
-                        <div>{name}</div>
-                        <div className="pie-value">
-                          {formatValue(value)} ({percentage.toFixed(1)}%)
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* Placeholder pie visual */}
-              <div className="pie-visual" style={{ 
-                position: 'absolute', 
-                top: '10px', 
-                right: '10px',
-                width: '150px',
-                height: '150px',
-                borderRadius: '50%',
-                background: 'conic-gradient(#3b82f6 0% 55%, #ef4444 55% 75%, #10b981 75% 90%, #f59e0b 90% 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                {type === 'donut' && (
-                  <div style={{
-                    width: '70px',
-                    height: '70px',
-                    borderRadius: '50%',
-                    background: 'white'
-                  }}></div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'bar':
-        return (
-          <div className="chart-container">
-            <h4 className="chart-title">{chartTitle}</h4>
-            <div className="chart-content bar-chart" style={{ height }}>
-              {chartData.map((item, index) => {
-                const value = typeof yDataKey === 'string' ? item[yDataKey] : item.value;
-                const name = typeof xDataKey === 'string' ? item[xDataKey] : item.name;
-                
-                // Calculate bar height percentage
-                const maxValue = Math.max(...chartData.map(d => 
-                  typeof yDataKey === 'string' ? d[yDataKey] : d.value
-                ));
-                const barHeight = (value / maxValue) * 80; // 80% of container height max
-                
-                // For visual purposes, generate colors
-                const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-                const color = colors[index % colors.length];
-                
-                return (
-                  <div 
-                    key={index}
-                    className="bar-item"
-                    onClick={() => handleDataPointClick(item, index)}
-                    style={{ cursor: onDrillDown ? 'pointer' : 'default' }}
-                  >
-                    <div className="bar-container">
-                      <div 
-                        className="bar" 
-                        style={{ 
-                          height: \`\${barHeight}%\`, 
-                          backgroundColor: color 
-                        }}
-                      >
-                        <span className="bar-value">{formatValue(value)}</span>
-                      </div>
-                      
-                      {comparisonValue && (
-                        <div 
-                          className="comparison-line"
-                          style={{ 
-                            position: 'absolute',
-                            width: '100%',
-                            height: '2px',
-                            backgroundColor: '#000',
-                            bottom: \`\${(comparisonValue / maxValue) * 80}%\`,
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div className="bar-label">{name}</div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {comparisonValue && comparisonLabel && (
-              <div className="comparison-legend">
-                <span className="comparison-indicator"></span>
-                <span className="comparison-label">{comparisonLabel}: {formatValue(comparisonValue)}</span>
-              </div>
-            )}
-          </div>
-        );
-        
-      case 'line':
-        return (
-          <div className="chart-container">
-            <h4 className="chart-title">{chartTitle}</h4>
-            <div className="chart-content line-chart" style={{ height }}>
-              <div className="chart-placeholder">
-                <div className="line-chart-visual" style={{
-                  width: '100%',
-                  height: '200px',
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  justifyContent: 'space-between'
-                }}>
-                  {/* Simplified visual line chart */}
-                  <svg width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="none">
-                    <path 
-                      d="M0,150 C50,120 100,180 150,100 C200,20 250,90 300,60 C350,30 400,50 500,10" 
-                      stroke="#3b82f6" 
-                      strokeWidth="3" 
-                      fill="none"
-                    />
-                    {comparisonValue && (
-                      <line 
-                        x1="0" 
-                        y1={200 - (comparisonValue / 100 * 200)} 
-                        x2="500" 
-                        y2={200 - (comparisonValue / 100 * 200)}
-                        stroke="#000" 
-                        strokeWidth="2" 
-                        strokeDasharray="5,5" 
-                      />
-                    )}
-                  </svg>
-                </div>
-                
-                <div className="line-chart-labels">
-                  {chartData.map((item, index) => (
-                    <div key={index} className="line-label">
-                      {typeof xDataKey === 'string' ? item[xDataKey] : item.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {comparisonValue && comparisonLabel && (
-              <div className="comparison-legend">
-                <span className="comparison-indicator"></span>
-                <span className="comparison-label">{comparisonLabel}: {formatValue(comparisonValue)}</span>
-              </div>
-            )}
-          </div>
-        );
-        
-      default:
-        return <div>Unsupported chart type: {type}</div>;
-    }
-  };
-
-  return (
-    <div className="advanced-chart">
-      <div className="chart-header">
-        {drillDownData && (
-          <button 
-            onClick={handleBackClick}
-            className="back-button"
-          >
-            ← Back
-          </button>
-        )}
-        
-        {description && (
-          <div className="chart-description">{description}</div>
-        )}
-        
-        {allowDownload && (
-          <button 
-            onClick={handleDownload}
-            className="download-button"
-          >
-            Download
-          </button>
-        )}
-      </div>
-      
-      {renderChart()}
-    </div>
-  );
-};
-
-export default AdvancedChart;
-`);
-
-// Create DashboardGrid.js
-console.log('Creating DashboardGrid.js...');
-fs.writeFileSync(path.join(srcDir, 'DashboardGrid.js'), `
-import React from 'react';
-
-// Widget component
-const Widget = ({ children, title, size = 'medium', onRefresh = null }) => {
-  const handleRefresh = () => {
-    if (onRefresh) {
-      onRefresh(title.replace(/\\s+/g, '-').toLowerCase());
-    }
-  };
-
-  // Apply CSS classes based on widget size
-  const sizeClasses = {
-    small: 'col-span-1',
-    medium: 'col-span-1 md:col-span-2',
-    large: 'col-span-1 md:col-span-4',
-    full: 'col-span-1 md:col-span-4'
-  };
-
-  return (
-    <div className={\`widget \${sizeClasses[size] || 'col-span-1'}\`}>
-      <div className="widget-header">
-        <h3 className="widget-title">{title}</h3>
-        {onRefresh && (
-          <button className="refresh-widget-button" onClick={handleRefresh}>
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M21 12a9 9 0 0 1-9 9c-2.52 0-4.93-1.06-6.7-2.82"></path>
-              <path d="M21 12a9 9 0 0 0-9-9c-2.52 0-4.93 1.06-6.7 2.82"></path>
-              <path d="m3 12 3-3 3 3"></path>
-            </svg>
-          </button>
-        )}
-      </div>
-      <div className="widget-content">
-        {children}
-      </div>
-    </div>
-  );
-};
-
-// Main dashboard grid
-const DashboardGrid = ({ children, responsive = true, className = '' }) => {
-  return (
-    <div className={\`dashboard-grid \${responsive ? 'responsive' : ''} \${className}\`}>
-      {children}
-    </div>
-  );
-};
-
-// Add Widget as a static property
-DashboardGrid.Widget = Widget;
-
-export default DashboardGrid;
-`);
-
-// Create index.css (upgraded modern design)
-console.log('Creating enhanced modern index.css...');
-fs.writeFileSync(path.join(srcDir, 'index.css'), `
-/* Modern Professional Dashboard CSS - Complete Overhaul */
-
-/* Base imports */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
-
-:root {
-  /* Color system */
-  --primary: #0052cc;
-  --primary-light: #4c9aff;
-  --primary-dark: #0747a6;
-  --secondary: #00875a;
-  --warning: #ff991f;
-  --error: #de350b;
-  --success: #36b37e;
-  --info: #6554c0;
-  
-  /* Neutrals */
-  --neutral-50: #f9fafb;
-  --neutral-100: #f3f4f6;
-  --neutral-200: #e5e7eb;
-  --neutral-300: #d1d5db;
-  --neutral-400: #9ca3af;
-  --neutral-500: #6b7280;
-  --neutral-600: #4b5563;
-  --neutral-700: #374151;
-  --neutral-800: #1f2937;
-  --neutral-900: #111827;
-  
-  /* Brand colors */
-  --brand-red: #db0032;
-  --brand-blue: #0066a4;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
-  /* Transitions */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Border radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-full: 9999px;
-}
-
-/* Base resets and global styles */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  font-size: 16px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--neutral-100);
-  color: var(--neutral-800);
-  line-height: 1.5;
-  overflow-x: hidden;
-}
-
-/* Main container */
-.app-container {
-  max-width: 1280px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .app-container {
-    margin: 1rem auto;
-    padding: 0 1rem;
-  }
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Advanced scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--neutral-100);
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--neutral-300);
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--neutral-400);
-}
-
-/* Tabs navigation - modern design */
-.tabs-container {
-  display: flex;
-  margin-bottom: 2rem;
-  position: relative;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-.tabs-container::-webkit-scrollbar {
-  height: 0;
-  width: 0;
-  display: none;
-}
-
-.tab-button {
-  background: none;
-  border: none;
-  padding: 1rem 1.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--neutral-600);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all var(--transition-normal);
-  white-space: nowrap;
-  position: relative;
-  z-index: 1;
-}
-
-.tab-button.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-  font-weight: 600;
-}
-
-.tab-button:hover:not(.active) {
-  color: var(--neutral-800);
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-.placeholder-tab {
-  background-color: white;
-  border-radius: var(--radius-lg);
-  padding: 3rem 2rem;
-  text-align: center;
-  font-size: 1.25rem;
-  color: var(--neutral-500);
-  box-shadow: var(--shadow-md);
-  margin-top: 2rem;
-  border: 1px solid var(--neutral-200);
-}
-
-/* Dashboard styles */
-.dashboard-container {
-  position: relative;
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--neutral-200);
-}
-
-.dashboard-header h1 {
-  font-family: 'Poppins', 'Inter', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--neutral-900);
-  margin: 0;
-  line-height: 1.2;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.time-range-controls {
-  display: flex;
-  background-color: var(--neutral-100);
-  border-radius: var(--radius-full);
-  padding: 0.25rem;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--neutral-200);
-}
-
-.time-range-button {
-  background: none;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--neutral-600);
-  cursor: pointer;
-  border-radius: var(--radius-full);
-  transition: all var(--transition-fast);
-}
-
-.time-range-button.active {
-  background-color: white;
-  color: var(--primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.time-range-button:hover:not(.active) {
-  color: var(--neutral-800);
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-.refresh-button {
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 0.6rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.refresh-button:hover {
-  background-color: var(--primary-dark);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.refresh-button:active {
-  transform: translateY(0);
-}
-
-.last-updated {
-  font-size: 0.8125rem;
-  color: var(--neutral-500);
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-/* Metrics grid - modern card design */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 1.75rem;
-}
-
-.metric-card {
-  background-color: white;
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  box-shadow: var(--shadow-md);
-  position: relative;
-  transition: all var(--transition-normal);
-  border: 1px solid var(--neutral-200);
-  overflow: hidden;
-}
-
-.metric-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-3px);
-}
-
-.metric-card.border-l-4 {
-  border-left-width: 4px;
-}
-
-.border-green-500 {
-  border-left-color: var(--success);
-}
-
-.border-yellow-500 {
-  border-left-color: var(--warning);
-}
-
-.border-red-500 {
-  border-left-color: var(--error);
-}
-
-.border-transparent {
-  border-left-color: transparent;
-}
-
-.metric-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.metric-title {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--neutral-600);
-}
-
-.details-button {
-  background: none;
-  border: none;
-  color: var(--neutral-500);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-normal);
-  width: 28px;
-  height: 28px;
-}
-
-.details-button:hover {
-  background-color: var(--neutral-100);
-  color: var(--neutral-700);
-}
-
-.metric-value-container {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.metric-value {
-  font-family: 'Poppins', 'Inter', sans-serif;
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--neutral-900);
-  line-height: 1;
-}
-
-.metric-trend {
-  display: flex;
-  align-items: center;
-  font-size: 0.875rem;
-  font-weight: 500;
-  gap: 0.25rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-full);
-  line-height: 1;
-}
-
-.text-green-500 {
-  color: var(--success);
-  background-color: rgba(54, 179, 126, 0.1);
-}
-
-.text-red-500 {
-  color: var(--error);
-  background-color: rgba(222, 53, 11, 0.1);
-}
-
-.text-gray-400 {
-  color: var(--neutral-600);
-  background-color: rgba(156, 163, 175, 0.1);
-}
-
-.metric-goal {
-  margin-top: 1.25rem;
-}
-
-.goal-bar-container {
-  margin-bottom: 0.5rem;
-}
-
-.goal-bar-background {
-  width: 100%;
-  height: 0.5rem;
-  background-color: var(--neutral-200);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.goal-bar-progress {
-  height: 100%;
-  background-color: var(--primary);
-  border-radius: var(--radius-full);
-  transition: width var(--transition-slow);
-}
-
-.goal-text {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8125rem;
-  color: var(--neutral-500);
-}
-
-.metric-mini-chart {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  height: 2.5rem;
-  gap: 0.25rem;
-  margin-top: 1.25rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed var(--neutral-200);
-}
-
-.mini-chart-bar {
-  flex-grow: 1;
-  background-color: var(--primary-light);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  transition: height var(--transition-normal);
-  position: relative;
-  overflow: hidden;
-}
-
-.mini-chart-bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 30%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
-}
-
-.metric-details {
-  margin-top: 1.25rem;
-  border-top: 1px solid var(--neutral-200);
-  padding-top: 1rem;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.details-header h4 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--neutral-700);
-}
-
-.details-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8125rem;
-  padding: 0.375rem 0;
-  border-bottom: 1px dotted var(--neutral-200);
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  color: var(--neutral-600);
-}
-
-.detail-value {
-  font-weight: 500;
-  color: var(--neutral-900);
-}
-
-/* Dashboard Grid - Modern Card Layout */
-.dashboard-grid {
-  display: grid;
-  gap: 1.25rem;
-  margin-bottom: 2rem;
-  grid-template-columns: repeat(4, 1fr);
-}
-
-@media (max-width: 1200px) {
-  .dashboard-grid.responsive {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-grid.responsive {
-    grid-template-columns: 1fr;
-  }
-}
-
-.widget {
-  background-color: white;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-  transition: all var(--transition-normal);
-  border: 1px solid var(--neutral-200);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.widget:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-3px);
-}
-
-.widget-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--neutral-200);
-  background-color: var(--neutral-50);
-}
-
-.widget-title {
-  font-family: 'Poppins', 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-}
-
-.refresh-widget-button {
-  background: none;
-  border: none;
-  color: var(--neutral-500);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-  width: 32px;
-  height: 32px;
-}
-
-.refresh-widget-button:hover {
-  background-color: var(--neutral-200);
-  color: var(--neutral-700);
-}
-
-.refresh-widget-button svg {
-  transition: transform 0.5s ease;
-}
-
-.refresh-widget-button:hover svg {
-  transform: rotate(30deg);
-}
-
-.widget-content {
-  padding: 1.5rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Advanced Chart Styles - Professional Visualization */
-.advanced-chart {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.25rem;
-}
-
-.chart-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--neutral-700);
-  margin: 0;
-}
-
-.chart-description {
-  font-size: 0.8125rem;
-  color: var(--neutral-500);
-  margin-top: 0.25rem;
-}
-
-.back-button, .download-button {
-  background: none;
-  border: 1px solid var(--neutral-300);
-  border-radius: var(--radius-md);
-  padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
-  color: var(--neutral-600);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.back-button:hover, .download-button:hover {
-  background-color: var(--neutral-100);
-  color: var(--neutral-800);
-  border-color: var(--neutral-400);
-}
-
-/* Pie Chart Styles - Enhanced Visuals */
-.pie-chart {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  position: relative;
-  height: 100%;
-}
-
-.pie-segments {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  max-width: 65%;
-}
-
-.pie-segment-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 100px;
-  cursor: pointer;
-  transition: transform var(--transition-normal);
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-}
-
-.pie-segment-container:hover {
-  transform: translateY(-4px) scale(1.03);
-  background-color: var(--neutral-50);
-}
-
-.pie-segment {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 0.75rem;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  position: relative;
-  overflow: hidden;
-}
-
-.pie-segment::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 40%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
-}
-
-.pie-label {
-  font-size: 0.8125rem;
-  text-align: center;
-  color: var(--neutral-700);
-  font-weight: 500;
-}
-
-.pie-value {
-  font-weight: 600;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--neutral-900);
-}
-
-.pie-visual {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform var(--transition-slow);
-  transform-origin: center;
-}
-
-.widget:hover .pie-visual {
-  transform: rotate(10deg) scale(1.05);
-}
-
-/* Bar Chart Styles - Enhanced Visuals */
-.bar-chart {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  height: 250px;
-}
-
-.bar-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
-}
-
-.bar-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  width: 28px;
-  height: 80%;
-  transition: transform var(--transition-normal);
-}
-
-.bar-item:hover .bar-container {
-  transform: translateY(-6px);
-}
-
-.bar {
-  width: 100%;
-  background: linear-gradient(to top, var(--primary), var(--primary-light));
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  min-height: 20px;
-  box-shadow: var(--shadow-md);
-  position: relative;
-  overflow: hidden;
-}
-
-.bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 30%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
-}
-
-.bar-value {
-  position: absolute;
-  top: -24px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--neutral-700);
-  background-color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-
-.bar-item:hover .bar-value {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-2px);
-}
-
-.bar-label {
-  margin-top: 0.75rem;
-  font-size: 0.8125rem;
-  text-align: center;
-  color: var(--neutral-700);
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-}
-
-.comparison-legend {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  font-size: 0.8125rem;
-  color: var(--neutral-600);
-  padding: 0.5rem 0.75rem;
-  background-color: var(--neutral-50);
-  border-radius: var(--radius-md);
-  align-self: flex-start;
-}
-
-.comparison-indicator {
-  display: inline-block;
-  width: 16px;
-  height: 2px;
-  background-color: var(--neutral-900);
-}
-
-/* Line Chart Styles - Enhanced Visuals */
-.line-chart {
-  position: relative;
-  padding-bottom: 1rem;
-}
-
-.line-chart-visual svg {
-  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.1));
-}
-
-.line-chart-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1rem;
-}
-
-.line-label {
-  font-size: 0.8125rem;
-  color: var(--neutral-600);
-  text-align: center;
-  flex: 1;
-  font-weight: 500;
-}
-
-/* Loading and error states - Modern Design */
-.loading-container,
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  min-height: 300px;
-  padding: 2.5rem;
-  background-color: white;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--neutral-200);
-}
-
-.loading-spinner {
-  border: 3px solid var(--neutral-200);
-  border-top: 3px solid var(--primary);
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1.5rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-container h3 {
-  font-size: 1.25rem;
-  color: var(--error);
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-.error-container p {
-  color: var(--neutral-700);
-  margin-bottom: 1.5rem;
-  max-width: 500px;
-}
-
-.error-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  color: var(--error);
-}
-
-.overlay-loading {
-  position: absolute;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--primary);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-full);
-  font-weight: 500;
-  font-size: 0.875rem;
-  box-shadow: var(--shadow-lg);
-  animation: fadeInDown 0.5s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  z-index: 10;
-}
-
-.overlay-loading::before {
-  content: '';
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translate(-50%, -20px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-/* Header banner/artwork - Enhanced Design */
-.header-with-banner {
-  display: flex;
-  flex-direction: column;
-}
-
-.header-banner {
-  height: 8px;
-  width: 160px;
-  margin-bottom: 0.75rem;
-  border-radius: var(--radius-full);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  position: relative;
-  overflow: hidden;
-}
-
-.header-banner::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: shine 2.5s infinite;
-}
-
-@keyframes shine {
-  100% { left: 100%; }
-}
-
-.novo-gradient {
-  background: linear-gradient(to right, var(--brand-red), var(--brand-blue));
-}
-
-/* Advanced effects for charts and cards */
-.widget,
-.metric-card {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-}
-
-.widget::after,
-.metric-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: linear-gradient(to right, var(--brand-red), var(--brand-blue));
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-  z-index: -1;
-}
-
-.widget:hover::after,
-.metric-card:hover::after {
-  opacity: 1;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .metric-card {
-    padding: 1rem;
-  }
-  
-  .metric-value {
-    font-size: 1.75rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1.25rem;
-  }
-  
-  .header-actions {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-  
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .time-range-controls {
-    order: -1;
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .refresh-button {
-    flex: 1;
-    justify-content: center;
-  }
-  
-  .last-updated {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* Print styles */
-@media print {
-  .tabs-container,
-  .refresh-button,
-  .details-button,
-  .refresh-widget-button {
-    display: none !important;
-  }
-  
-  .app-container {
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .dashboard-container,
-  .metrics-grid,
-  .dashboard-grid,
-  .widget,
-  .metric-card {
-    break-inside: avoid;
-  }
-  
-  .dashboard-header {
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    box-shadow: none;
-    border: none;
-  }
-  
-  body {
-    background-color: white;
-    font-size: 12pt;
-  }
-}
-`);
-
-console.log('Vercel build preparation completed successfully!'); 
-
-// Create ProcessAnalysis.js file
-console.log('Creating ProcessAnalysis.js...');
-fs.writeFileSync(path.join(srcDir, 'ProcessAnalysis.js'), `import React, { useState, useMemo, useCallback } from 'react';
+// Create ProcessAnalysis.js with proper data handling
+console.log('Creating ProcessAnalysis.js with enhanced data handling...');
+fs.writeFileSync(path.join(srcDir, 'ProcessAnalysis.js'), `import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDataContext } from './DataContext';
 
 const ProcessAnalysis = () => {
+  console.log('ProcessAnalysis component rendered');
   const { data, isLoading, error, refreshData } = useDataContext();
   const [expandedStep, setExpandedStep] = useState(null);
   
-  // Process step data with enhanced analysis
+  // Add debugging effect for data
+  useEffect(() => {
+    console.log('ProcessAnalysis data effect triggered');
+    if (data) {
+      console.log('Process Analysis component received data');
+      console.log('commercialProcess exists:', Boolean(data.commercialProcess));
+      if (data.commercialProcess) {
+        console.log('processFlow exists:', Boolean(data.commercialProcess.processFlow));
+        if (data.commercialProcess.processFlow) {
+          console.log('processFlow data:', data.commercialProcess.processFlow);
+        }
+      }
+    } else {
+      console.log('No data received in ProcessAnalysis component');
+    }
+  }, [data]);
+  
+  // Process step data with enhanced analysis - use real data from JSON if available
   const processStepsData = useMemo(() => {
+    console.log('Computing processStepsData');
+    if (data && data.commercialProcess && data.commercialProcess.processFlow) {
+      console.log('Using real processFlow data');
+      return data.commercialProcess.processFlow.map(step => ({
+        id: step.name.toLowerCase().replace(/\\s+/g, '-'),
+        name: step.name,
+        time: step.avgDuration,
+        target: step.avgDuration * 0.9, // Assuming target is 10% lower than actual
+        bottleneck: parseFloat(step.deviationRate) > 5, // Bottleneck if deviation rate > 5%
+        variation: parseFloat(step.deviationRate) > 7 ? 'high' : parseFloat(step.deviationRate) > 4 ? 'medium' : 'low',
+        trend: 'stable' // Default to stable if no trend data
+      }));
+    }
+    
+    // Fallback to static data if data not available
+    console.log('Using fallback static data');
     return [
       { 
-        id: 'prep', 
-        name: 'Order Preparation', 
-        time: 2.6, 
-        target: 2.0,
-        bottleneck: false,
+        id: 'assembly', 
+        name: 'Assembly', 
+        time: 3.5, 
+        target: 3.0,
+        bottleneck: true,
         variation: 'medium',
         trend: 'stable'
       },
       { 
-        id: 'proc', 
-        name: 'Processing', 
-        time: 7.8, 
-        target: 6.5,
+        id: 'quality-control', 
+        name: 'Quality Control', 
+        time: 2.8, 
+        target: 2.5,
         bottleneck: true,
         variation: 'high',
         trend: 'increasing'
       },
       { 
-        id: 'qa', 
-        name: 'Quality Assessment', 
-        time: 3.4, 
-        target: 3.0,
+        id: 'packaging', 
+        name: 'Packaging', 
+        time: 2.4, 
+        target: 2.0,
         bottleneck: false,
         variation: 'low',
         trend: 'decreasing'
       },
       { 
-        id: 'pkg', 
-        name: 'Packaging', 
-        time: 4.2, 
-        target: 3.5,
+        id: 'final-review', 
+        name: 'Final Review', 
+        time: 1.8, 
+        target: 1.5,
         bottleneck: false,
         variation: 'medium',
         trend: 'stable'
-      },
-      { 
-        id: 'ship', 
-        name: 'Release/Shipping', 
-        time: 3.8, 
-        target: 3.0,
-        bottleneck: false,
-        variation: 'medium',
-        trend: 'decreasing'
       }
     ];
-  }, []);
+  }, [data]);
   
   // Calculate total process time and other aggregate metrics
   const processMetrics = useMemo(() => {
@@ -2354,6 +682,7 @@ const ProcessAnalysis = () => {
   
   // Loading state
   if (isLoading && !data) {
+    console.log('Rendering loading state');
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
@@ -2364,6 +693,7 @@ const ProcessAnalysis = () => {
   
   // Error state
   if (error && !data) {
+    console.log('Rendering error state:', error);
     return (
       <div className="error-container">
         <div className="error-icon">⚠️</div>
@@ -2376,14 +706,15 @@ const ProcessAnalysis = () => {
     );
   }
   
+  console.log('Rendering process flow visualization');
+  
+  // Reliable rendering that doesn't depend on data
   return (
     <div className="process-flow-container">
-      {/* Header */}
       <div className="process-flow-header">
         <h1>Process Flow Visualization</h1>
       </div>
       
-      {/* Process Flow Timeline */}
       <div className="process-flow-timeline-container">
         <div className="process-flow-visualization">
           <div className="timeline-header">
@@ -2393,7 +724,7 @@ const ProcessAnalysis = () => {
           
           <div className="timeline-scale">
             {Array.from({ length: Math.ceil(processMetrics.totalTime) + 1 }).map((_, i) => (
-              <div key={i} className="timeline-marker">
+              <div key={i} className="timeline-marker" style={{ left: \`\${(i / processMetrics.totalTime) * 100}%\` }}>
                 <div className="timeline-tick"></div>
                 <div className="timeline-label">{i}</div>
               </div>
@@ -2470,35 +801,35 @@ const ProcessAnalysis = () => {
                         <div className="step-recommendations">
                           <h4>Improvement Recommendations</h4>
                           <ul className="recommendations-list">
-                            {step.id === 'prep' && (
+                            {step.id === 'assembly' && (
                               <>
                                 <li>Implement electronic documentation system</li>
                                 <li>Create standardized templates</li>
                               </>
                             )}
-                            {step.id === 'proc' && (
+                            {step.id === 'quality-control' && (
                               <>
                                 <li>Implement preventive maintenance program</li>
                                 <li>Enhance operator training</li>
                                 <li>Implement pre-processing quality checks</li>
                               </>
                             )}
-                            {step.id === 'qa' && (
-                              <>
-                                <li>Implement automated testing where possible</li>
-                                <li>Develop checklist-based testing approach</li>
-                              </>
-                            )}
-                            {step.id === 'pkg' && (
+                            {step.id === 'packaging' && (
                               <>
                                 <li>Improve material inventory management</li>
                                 <li>Consider equipment upgrades</li>
                               </>
                             )}
-                            {step.id === 'ship' && (
+                            {step.id === 'final-review' && (
                               <>
                                 <li>Streamline documentation approval process</li>
                                 <li>Improve coordination with logistics providers</li>
+                              </>
+                            )}
+                            {!['assembly', 'quality-control', 'packaging', 'final-review'].includes(step.id) && (
+                              <>
+                                <li>Analyze process for improvement opportunities</li>
+                                <li>Review standard operating procedures</li>
                               </>
                             )}
                           </ul>
@@ -2522,47 +853,29 @@ const ProcessAnalysis = () => {
 
 export default ProcessAnalysis;`);
 
-// Update App.js to include ProcessAnalysis in the tabs
-console.log('Updating App.js to include ProcessAnalysis...');
-fs.writeFileSync(path.join(srcDir, 'App.js'), `import React, { useState } from 'react';
-import { DataProvider } from './DataContext';
-import Dashboard from './Dashboard';
-import ProcessAnalysis from './ProcessAnalysis';
+// Create additional files to make sure all dependencies are met
+console.log('Creating additional required files...');
 
-const App = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
-  // Define all available tabs to match the existing structure
-  const tabs = [
-    { id: 'dashboard', label: 'Dashboard', component: Dashboard },
-    { id: 'process-flow', label: 'Process Flow', component: ProcessAnalysis },
-    { id: 'lot-analytics', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
-    { id: 'customer-comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
-    { id: 'insights', label: 'Insights', component: () => <div className="placeholder-tab">Data Insights Dashboard</div> }
-  ];
+// Create TimeFilterContext.js - Basic implementation
+fs.writeFileSync(path.join(srcDir, 'TimeFilterContext.js'), `
+import React, { createContext, useContext, useState } from 'react';
 
-  // Get the active component to render
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || Dashboard;
-  
+const TimeFilterContext = createContext(null);
+
+export const useTimeFilter = () => useContext(TimeFilterContext);
+
+export const TimeFilterProvider = ({ children }) => {
+  const [timeRange, setTimeRange] = useState({ start: null, end: null });
+  const [preset, setPreset] = useState('6m'); // 1m, 3m, 6m, 1y, all
+
   return (
-    <DataProvider>
-      <div className="app-container">
-        <div className="tabs-container">
-          {tabs.map(tab => (
-            <button 
-              key={tab.id}
-              className={\`tab-button \${activeTab === tab.id ? 'active' : ''}\`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        
-        <ActiveComponent />
-      </div>
-    </DataProvider>
+    <TimeFilterContext.Provider value={{ timeRange, setTimeRange, preset, setPreset }}>
+      {children}
+    </TimeFilterContext.Provider>
   );
 };
 
-export default App;`);
+export default TimeFilterContext;
+`);
+
+console.log('Vercel setup completed successfully!');

@@ -14,8 +14,8 @@
     "lodash": "^4.17.21"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "prebuild": "echo 'Skipping preprocessing - using existing data files'",
+    "start": "node vercel-setup.js && react-scripts start",
+    "prebuild": "node vercel-setup.js",
     "build": "CI=false DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build",
     "vercel-setup": "node vercel-setup.js",
     "vercel-build": "npm run vercel-setup && CI=false DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build",
