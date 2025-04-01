@@ -14,6 +14,8 @@
     "start": "react-scripts start",
     "prebuild": "echo 'Skipping preprocessing - using existing data files'",
     "build": "CI=false DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build",
+    "vercel-setup": "node vercel-setup.js",
+    "vercel-build": "npm run vercel-setup && rm -rf src && cp -r src-new src && CI=false DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

@@ -44,15 +44,29 @@ To run the dashboard locally:
 
 ## Deployment
 
-This project is optimized for deployment on Netlify. The build process:
+### Deploying to Vercel (Recommended)
+
+This project is optimized for deployment on Vercel:
+
+1. Push your code to a GitHub repository
+2. Import the repository into Vercel: https://vercel.com/new
+3. The project includes the necessary configuration:
+   - `vercel.json` - Configures the build process
+   - `vercel-setup.js` - Ensures data files exist
+   - `vercel-build` script in package.json - Handles the build process
+
+No additional configuration is needed - the deployment will work automatically.
+
+### Deploying to Netlify (Alternative)
+
+This project can also be deployed on Netlify. The build process:
 
 1. Copies the optimized code from src-new to src
 2. Ensures the data file exists, creating a minimal version if needed
 3. Builds the application with optimized settings
 4. Copies data files to ensure they're properly served
 
-### Deploying to Netlify
-
+To deploy to Netlify:
 1. Connect your GitHub repository to Netlify
 2. Use the following build settings:
    - Build command: `chmod +x netlify-build.sh && ./netlify-build.sh`
