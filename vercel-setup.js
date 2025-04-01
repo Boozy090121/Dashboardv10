@@ -286,12 +286,94 @@ Object.entries(iconSizes).forEach(([filename, size]) => {
   const iconPath = path.join(publicDir, filename);
   if (!fs.existsSync(iconPath)) {
     console.log(`Creating placeholder icon: ${filename}`);
-    // Create a minimal 1x1 pixel PNG as placeholder
-    const base64Icon = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-    const iconBuffer = Buffer.from(base64Icon, 'base64');
-    fs.writeFileSync(iconPath, iconBuffer);
+    // Create a properly sized PNG with a blue background
+    // This is a minimal PNG that creates a blue square of the correct size
+    const pngHeader = Buffer.from([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+      0x00, 0x00, 0x00, 0x0D, // IHDR chunk length
+      0x49, 0x48, 0x44, 0x52, // "IHDR"
+      ...intToBytes(size), // Width
+      ...intToBytes(size), // Height
+      0x08, // Bit depth
+      0x06, // Color type (RGBA)
+      0x00, // Compression method
+      0x00, // Filter method
+      0x00, // Interlace method
+    ]);
+
+    // Calculate CRC32 for IHDR chunk
+    const ihdrCrc = calculateCrc32(pngHeader.slice(12, 29));
+    
+    // Create IDAT chunk with a blue color
+    const width = size;
+    const height = size;
+    const stride = width * 4 + 1; // 4 bytes per pixel (RGBA) + 1 byte filter type
+    const pixels = Buffer.alloc(stride * height);
+    
+    // Fill with blue color (R=26, G=115, B=232, A=255)
+    for (let y = 0; y < height; y++) {
+      pixels[y * stride] = 0; // Filter type 0 (None)
+      for (let x = 0; x < width; x++) {
+        const offset = y * stride + 1 + x * 4;
+        pixels[offset] = 26;     // R
+        pixels[offset + 1] = 115; // G
+        pixels[offset + 2] = 232; // B
+        pixels[offset + 3] = 255; // A
+      }
+    }
+
+    // Compress pixel data
+    const deflate = require('zlib').deflateSync;
+    const compressedPixels = deflate(pixels);
+    
+    // Create IDAT chunk
+    const idatChunk = Buffer.concat([
+      Buffer.from([0x00, 0x00, 0x00, 0x00]), // Length placeholder
+      Buffer.from('IDAT'),
+      compressedPixels
+    ]);
+    
+    // Update IDAT length
+    idatChunk.writeUInt32BE(compressedPixels.length, 0);
+    
+    // Calculate CRC32 for IDAT chunk
+    const idatCrc = calculateCrc32(idatChunk.slice(4));
+    
+    // Create IEND chunk
+    const iendChunk = Buffer.from([
+      0x00, 0x00, 0x00, 0x00, // Length
+      0x49, 0x45, 0x4E, 0x44, // "IEND"
+      0xAE, 0x42, 0x60, 0x82  // CRC32
+    ]);
+    
+    // Combine all chunks
+    const pngFile = Buffer.concat([
+      pngHeader,
+      Buffer.from(ihdrCrc),
+      idatChunk,
+      Buffer.from(idatCrc),
+      iendChunk
+    ]);
+    
+    fs.writeFileSync(iconPath, pngFile);
   }
 });
+
+// Helper function to convert number to 4 bytes
+function intToBytes(num) {
+  const buf = Buffer.alloc(4);
+  buf.writeUInt32BE(num);
+  return [...buf];
+}
+
+// Helper function to calculate CRC32
+function calculateCrc32(data) {
+  const crc = require('crc-32');
+  const crcValue = crc.buf(data);
+  const buf = Buffer.alloc(4);
+  buf.writeInt32BE(crcValue);
+  return buf;
+}
 
 // Create site.webmanifest for PWA support
 console.log('Creating site.webmanifest...');
