@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import { DataProvider } from './DataContext';
 import Dashboard from './Dashboard';
-import AdvancedAnalytics from './AdvancedAnalytics';
 import ProcessAnalysis from './ProcessAnalysis';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Define all available tabs
+  // Define all available tabs to match the existing structure
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', component: Dashboard },
-    { id: 'analytics', label: 'Advanced Analytics', component: AdvancedAnalytics },
-    { id: 'process', label: 'Process Analysis', component: ProcessAnalysis },
-    { id: 'lots', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
-    { id: 'comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
+    { id: 'process-flow', label: 'Process Flow', component: ProcessAnalysis },
+    { id: 'lot-analytics', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
+    { id: 'customer-comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
     { id: 'insights', label: 'Insights', component: () => <div className="placeholder-tab">Data Insights Dashboard</div> }
   ];
 

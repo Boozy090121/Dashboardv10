@@ -1079,14 +1079,27 @@ body {
   color: var(--neutral-500);
 }
 
-/* Process Flow Container */
+/* Process Flow Container and Timeline */
 .process-flow-container {
   background-color: white;
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
-  border: 1px solid var(--neutral-200);
   margin-bottom: 2rem;
+  max-width: 95%;
+  margin: 0 auto;
+}
+
+.process-flow-timeline-container {
+  margin: 2rem 0;
+}
+
+.process-flow-instructions {
+  text-align: center;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  color: var(--neutral-600);
+  font-style: italic;
 }
 
 .process-flow-visualization {
@@ -1880,4 +1893,17 @@ body {
     left: 50%;
     transform: translateX(-50%) rotate(45deg);
   }
+}
+
+/* Process Flow Header - match existing app styling */
+.process-flow-header {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.process-flow-header h1 {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--neutral-800);
 }
