@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { DataProvider } from './DataContext';
 import { TimeFilterProvider } from './TimeFilterContext';
 import { StorageProvider } from './StorageProvider';
@@ -11,11 +11,107 @@ import HistoricalAnalysis from './HistoricalAnalysis';
 import CustomerCommentAnalysis from './CustomerCommentAnalysis';
 import Widgets from './Widgets';
 import UserSettings from './UserSettings';
+import PlaceholderComponent from './PlaceholderComponent';
+
+// Error boundary component to catch rendering errors
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Tab component error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <PlaceholderComponent tabName={this.props.tabName || "Tab"} />;
+    }
+    return this.props.children;
+  }
+}
 
 /**
  * Main application component with tab navigation
  */
 const App = () => {
+  // Add critical inline styles to ensure tabs render correctly
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      /* Critical tab fix with highest priority */
+      body #root .app-container {
+        max-width: 1400px !important;
+        margin: 0 auto !important;
+        padding: 20px !important;
+        position: relative !important;
+      }
+      
+      body #root .tabs-container {
+        display: flex !important;
+        overflow-x: auto !important;
+        border-bottom: 1px solid #E5E7EB !important;
+        margin-bottom: 24px !important;
+        scrollbar-width: thin !important;
+        position: relative !important;
+        width: 100% !important;
+      }
+      
+      body #root .app-container .tabs-container .tab-button {
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        color: #6B7280 !important;
+        border: none !important;
+        background: transparent !important;
+        cursor: pointer !important;
+        white-space: nowrap !important;
+        position: relative !important;
+        transition: all 250ms ease !important;
+        gap: 8px !important;
+      }
+      
+      body #root .app-container .tabs-container .tab-button.active {
+        color: #CC2030 !important;
+        font-weight: 600 !important;
+      }
+      
+      body #root .app-container .tabs-container .tab-button svg {
+        width: 16px !important;
+        height: 16px !important;
+      }
+      
+      body #root .app-container .tabs-container .tab-button.active svg {
+        stroke: #CC2030 !important;
+        color: #CC2030 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  // Force a reload if the app has been loaded for more than 10 seconds and is in a bad state
+  useEffect(() => {
+    const loadTimeout = setTimeout(() => {
+      if (document.querySelectorAll('.tab-button').length === 0) {
+        console.log('Tab buttons not rendered properly, forcing reload');
+        window.location.reload();
+      }
+    }, 10000);
+    
+    return () => clearTimeout(loadTimeout);
+  }, []);
+
   // Check URL for initial tab selection
   const [activeTab, setActiveTab] = useState(() => {
     // Check URL hash for #process-flow or other tab indicators
@@ -150,8 +246,9 @@ const App = () => {
     }
   ];
 
-  // Get the active component to render
-  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || Dashboard;
+  // Get the active component to render with fallback to Dashboard
+  const activeTabData = tabs.find(tab => tab.id === activeTab) || tabs[0];
+  const ActiveComponent = activeTabData.component;
   console.log('Rendering component for tab:', activeTab, 'Component:', ActiveComponent?.name || 'Unknown');
   
   return (
@@ -188,7 +285,11 @@ const App = () => {
               ))}
             </div>
             
-            <ActiveComponent />
+            <ErrorBoundary tabName={activeTabData.label}>
+              <Suspense fallback={<div style={{padding: '40px', textAlign: 'center'}}>Loading {activeTabData.label}...</div>}>
+                <ActiveComponent />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </TimeFilterProvider>
       </DataProvider>

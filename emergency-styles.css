@@ -1,0 +1,96 @@
+/**
+ * EMERGENCY CSS STYLES
+ * These styles will ensure basic tab rendering even if other styles fail to load
+ */
+
+/* Base reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #F9FAFB;
+  color: #232323;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Critical app container styles */
+.app-container {
+  max-width: 1400px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  position: relative !important;
+}
+
+/* Essential tab navigation */
+.tabs-container {
+  display: flex !important;
+  overflow-x: auto !important;
+  border-bottom: 1px solid #E5E7EB !important;
+  margin-bottom: 24px !important;
+  position: relative !important;
+  width: 100% !important;
+}
+
+.tab-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #6B7280 !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  position: relative !important;
+}
+
+.tab-button.active {
+  color: #CC2030 !important;
+  font-weight: 600 !important;
+}
+
+.tab-button::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 2px !important;
+  background-color: #CC2030 !important;
+  transform: scaleX(0) !important;
+}
+
+.tab-button.active::after {
+  transform: scaleX(1) !important;
+}
+
+.tab-button svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Basic content containers */
+.card {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+}
+
+/* Emergency placeholder */
+.placeholder-tab {
+  margin: 20px 0;
+  padding: 30px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  text-align: center;
+  border: 1px dashed #D1D5DB;
+} 
