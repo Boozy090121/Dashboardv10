@@ -273,10 +273,35 @@ const manifestContent = {
   "scope": "/"
 };
 
-fs.writeFileSync(
-  path.join(publicDir, 'site.webmanifest'),
-  JSON.stringify(manifestContent, null, 2)
-);
+// Create the webmanifest file in the public directory
+const manifestFile = path.join(publicDir, 'site.webmanifest');
+console.log('Writing webmanifest to:', manifestFile);
+fs.writeFileSync(manifestFile, JSON.stringify(manifestContent, null, 2));
+
+// Create placeholder icons if they don't exist
+const iconSizes = {
+  'android-chrome-192x192.png': 192,
+  'android-chrome-512x512.png': 512,
+  'favicon-32x32.png': 32,
+  'favicon-16x16.png': 16,
+  'apple-touch-icon.png': 180
+};
+
+Object.entries(iconSizes).forEach(([filename, size]) => {
+  const iconPath = path.join(publicDir, filename);
+  if (!fs.existsSync(iconPath)) {
+    console.log(`Creating placeholder icon: ${filename}`);
+    // Create a minimal SVG as placeholder
+    const svg = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#1a73e8"/>
+      <text x="50%" y="50%" font-family="Arial" font-size="${size/4}" 
+            fill="white" text-anchor="middle" dy=".3em">
+        ${size}
+      </text>
+    </svg>`;
+    fs.writeFileSync(iconPath, svg);
+  }
+});
 
 // Create robots.txt
 console.log('Creating robots.txt...');
