@@ -153,9 +153,28 @@ const Dashboard = () => {
   // Loading state
   if (isLoading && !data) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading dashboard data...</p>
+      <div className="loading-container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px',
+        minHeight: '400px'
+      }}>
+        <div className="loading-spinner" style={{
+          border: '4px solid rgba(0, 81, 138, 0.1)',
+          borderLeft: '4px solid #00518A',
+          borderRadius: '50%',
+          width: '40px',
+          height: '40px',
+          marginBottom: '20px',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+        <p style={{
+          color: '#6B7280',
+          fontSize: '16px',
+          fontWeight: '500'
+        }}>Loading dashboard data...</p>
       </div>
     );
   }
@@ -163,11 +182,46 @@ const Dashboard = () => {
   // Error state
   if (error && !data) {
     return (
-      <div className="error-container">
-        <div className="error-icon">⚠️</div>
-        <h3>Error Loading Data</h3>
-        <p>{error}</p>
-        <button onClick={refreshData} className="refresh-button">
+      <div className="error-container" style={{
+        padding: '24px',
+        margin: '24px',
+        border: '1px solid #CC2030',
+        borderRadius: '8px',
+        backgroundColor: 'rgba(204, 32, 48, 0.05)',
+        color: '#CC2030'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: '16px'
+        }}>
+          <div style={{
+            fontSize: '24px',
+            marginRight: '12px'
+          }}>⚠️</div>
+          <h3 style={{
+            margin: 0,
+            fontSize: '18px',
+            fontWeight: '600'
+          }}>Error Loading Dashboard</h3>
+        </div>
+        <p style={{
+          margin: '0 0 16px 0',
+          color: '#4B5563'
+        }}>{error}</p>
+        <button 
+          onClick={refreshData} 
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#00518A',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}
+        >
           Try Again
         </button>
       </div>

@@ -56,28 +56,49 @@ export const DataProvider = ({ children }) => {
     try {
       // Try loading from /data/complete-data.json first
       console.log('Attempting to load from /data/complete-data.json');
-      const response = await fetch('/data/complete-data.json', { signal });
+      const response = await fetch('/data/complete-data.json', { 
+        signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       
       // Check if component is still mounted
       if (!isMountedRef.current) return;
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', [...response.headers.entries()]);
       
       if (!response.ok) {
         throw new Error(`Failed to load data: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('Data loaded successfully:', data ? 'Data present' : 'No data');
+      
+      // Validate data structure
+      if (!data || !data.overview) {
+        throw new Error('Invalid data structure: missing required fields');
+      }
       
       // Check if component is still mounted before updating state
       if (isMountedRef.current) {
-        console.log('Data loaded successfully:', data ? 'Data present' : 'No data');
         setState({
           isLoading: false,
           error: null,
           data,
           lastUpdated: new Date()
         });
+        console.log('State updated with new data');
       }
     } catch (error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      
       // Don't update state if the error was due to an aborted fetch
       if (error.name === 'AbortError') {
         console.log('Data fetch was aborted');
@@ -89,15 +110,28 @@ export const DataProvider = ({ children }) => {
       // Try fallback location
       try {
         console.log('Attempting to load from fallback location...');
-        const fallbackResponse = await fetch('/complete-data.json', { signal });
+        const fallbackResponse = await fetch('/complete-data.json', { 
+          signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         
         if (!isMountedRef.current) return;
+        
+        console.log('Fallback response status:', fallbackResponse.status);
         
         if (!fallbackResponse.ok) {
           throw new Error(`Failed to load fallback data: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
         }
         
         const fallbackData = await fallbackResponse.json();
+        
+        // Validate fallback data structure
+        if (!fallbackData || !fallbackData.overview) {
+          throw new Error('Invalid fallback data structure: missing required fields');
+        }
         
         if (isMountedRef.current) {
           console.log('Data loaded successfully from fallback');
@@ -109,14 +143,21 @@ export const DataProvider = ({ children }) => {
           });
         }
       } catch (fallbackError) {
+        console.error('Fallback error details:', {
+          name: fallbackError.name,
+          message: fallbackError.message,
+          stack: fallbackError.stack
+        });
+        
         if (error.name === 'AbortError') return;
         
         if (isMountedRef.current) {
+          const errorMessage = 'Failed to load dashboard data. Please check your network connection and try again.';
           console.error('Error loading data from both locations:', error, fallbackError);
           setState(prev => ({
             ...prev,
             isLoading: false,
-            error: 'Failed to load dashboard data from all locations'
+            error: errorMessage
           }));
         }
       }
