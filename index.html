@@ -12,6 +12,32 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Set initial tab to Process Flow for testing
+      window.location.hash = 'process-flow';
+      
+      // Add debug listeners for data loading
+      window.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, checking for data directory');
+        
+        // Test if data file is accessible
+        fetch('/data/complete-data.json')
+          .then(response => {
+            console.log('Data fetch response:', response.status);
+            if (!response.ok) {
+              throw new Error('Failed to fetch data file: ' + response.status);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Data file loaded successfully, has process flow:', 
+                       Boolean(data?.commercialProcess?.processFlow));
+          })
+          .catch(error => {
+            console.error('Error fetching data file:', error);
+          });
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

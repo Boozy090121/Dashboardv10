@@ -9,6 +9,7 @@ const Dashboard = () => {
   const { data, isLoading, error, refreshData, lastUpdated } = useDataContext();
   const [timeRange, setTimeRange] = useState('6m'); // 1m, 3m, 6m, 12m, ytd
   const [expandedWidgetId, setExpandedWidgetId] = useState(null);
+  const [showNotice, setShowNotice] = useState(true);
   
   // Memoize calculated values to prevent recalculations on re-render
   const metrics = useMemo(() => {
@@ -160,6 +161,34 @@ const Dashboard = () => {
   
   return (
     <div className="dashboard-container">
+      {showNotice && (
+        <div className="notification-banner" style={{
+          background: 'linear-gradient(90deg, #1a73e8, #3498db)',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: '4px',
+          margin: '0 0 15px 0', 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <div>
+            <strong>New Analysis Features Available!</strong> Try the new Intelligence Engine, Lot Tracker, Enhanced Visualizations, and Historical Analysis tabs above.
+          </div>
+          <button onClick={() => setShowNotice(false)} style={{
+            background: 'transparent',
+            border: '1px solid white',
+            color: 'white',
+            borderRadius: '4px',
+            padding: '4px 8px',
+            cursor: 'pointer'
+          }}>
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <DashboardHeader 
         title="Manufacturing Dashboard" 
         onRefresh={refreshData} 

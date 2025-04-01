@@ -53,6 +53,7 @@ export const DataProvider = ({ children }) => {
     
     try {
       // Fetch data with abort signal
+      console.log('Fetching data from:', `${window.location.origin}/data/complete-data.json`);
       const response = await fetch(`${window.location.origin}/data/complete-data.json`, { signal });
       
       // Check if component is still mounted
@@ -66,14 +67,26 @@ export const DataProvider = ({ children }) => {
       
       // Check if component is still mounted before updating state
       if (isMountedRef.current) {
+        console.log('Dashboard data loaded successfully');
+        
+        // Check for processFlow data specifically
+        if (data && data.commercialProcess && data.commercialProcess.processFlow) {
+          console.log('ProcessFlow data found:', data.commercialProcess.processFlow);
+        } else {
+          console.warn('ProcessFlow data not found in loaded JSON!');
+          if (data && data.commercialProcess) {
+            console.log('commercialProcess keys:', Object.keys(data.commercialProcess));
+          } else if (data) {
+            console.log('Top-level keys:', Object.keys(data));
+          }
+        }
+        
         setState({
           isLoading: false,
           error: null,
           data,
           lastUpdated: new Date()
         });
-        
-        console.log('Dashboard data loaded successfully');
       }
     } catch (error) {
       // Don't update state if the error was due to an aborted fetch

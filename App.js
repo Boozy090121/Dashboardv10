@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataProvider } from './DataContext';
 import { TimeFilterProvider } from './TimeFilterContext';
 import Dashboard from './Dashboard';
@@ -12,7 +12,28 @@ import HistoricalAnalysis from './HistoricalAnalysis';
  * Main application component with tab navigation
  */
 const App = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Check URL for initial tab selection
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check URL hash for #process-flow or other tab indicators
+    const hash = window.location.hash.replace('#', '');
+    console.log('URL hash:', hash);
+    
+    // If hash matches a valid tab, use that
+    if (['dashboard', 'intelligence', 'process-flow', 'lot-analytics', 
+         'visualizations', 'historical', 'customer-comments'].includes(hash)) {
+      console.log('Setting initial tab from URL:', hash);
+      return hash;
+    }
+    
+    // Default to dashboard if no valid hash
+    return 'dashboard';
+  });
+  
+  // Update URL when tab changes
+  useEffect(() => {
+    console.log('Active tab changed to:', activeTab);
+    window.location.hash = activeTab;
+  }, [activeTab]);
   
   // Define all available tabs to match the existing structure
   const tabs = [
@@ -26,16 +47,6 @@ const App = () => {
           <rect x="14" y="3" width="7" height="7"></rect>
           <rect x="14" y="14" width="7" height="7"></rect>
           <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
-      )
-    },
-    { 
-      id: 'intelligence', 
-      label: 'Intelligence Engine',
-      component: IntelligenceEngine,
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2a8 8 0 0 0-8 8c0 5 6 10 8 10s8-5 8-10a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"></path>
         </svg>
       )
     },
@@ -64,30 +75,6 @@ const App = () => {
       )
     },
     { 
-      id: 'visualizations', 
-      label: 'Enhanced Visuals',
-      component: EnhancedVisualizations,
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 3v18h18"></path>
-          <path d="M13 17V9"></path>
-          <path d="M18 17V5"></path>
-          <path d="M8 17v-3"></path>
-        </svg>
-      )
-    },
-    { 
-      id: 'historical', 
-      label: 'Historical Analysis',
-      component: HistoricalAnalysis,
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 8v4l3 3"></path>
-          <circle cx="12" cy="12" r="10"></circle>
-        </svg>
-      )
-    },
-    { 
       id: 'customer-comments', 
       label: 'Customer Comments',
       component: () => <div className="placeholder-tab card"><div className="placeholder-content">Customer Comment Analysis Dashboard</div></div>,
@@ -96,11 +83,33 @@ const App = () => {
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
       )
+    },
+    { 
+      id: 'intelligence', 
+      label: 'Intelligence Engine',
+      component: IntelligenceEngine,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2a8 8 0 0 0-8 8c0 5 6 10 8 10s8-5 8-10a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"></path>
+        </svg>
+      )
+    },
+    { 
+      id: 'insights', 
+      label: 'Insights',
+      component: HistoricalAnalysis,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 8v4l3 3"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+      )
     }
   ];
 
   // Get the active component to render
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || Dashboard;
+  console.log('Rendering component for tab:', activeTab, 'Component:', ActiveComponent?.name || 'Unknown');
   
   return (
     <DataProvider>

@@ -1,12 +1,39 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDataContext } from './DataContext';
 
 const ProcessAnalysis = () => {
   const { data, isLoading, error, refreshData } = useDataContext();
   const [expandedStep, setExpandedStep] = useState(null);
   
-  // Process step data with enhanced analysis
+  // Add debugging effect for data
+  useEffect(() => {
+    if (data) {
+      console.log('Process Analysis component received data');
+      console.log('commercialProcess exists:', Boolean(data.commercialProcess));
+      if (data.commercialProcess) {
+        console.log('processFlow exists:', Boolean(data.commercialProcess.processFlow));
+        console.log('processFlow data:', data.commercialProcess.processFlow);
+      }
+    }
+  }, [data]);
+  
+  // Process step data with enhanced analysis - use real data from JSON if available
   const processStepsData = useMemo(() => {
+    if (data && data.commercialProcess && data.commercialProcess.processFlow) {
+      console.log('Using real processFlow data');
+      return data.commercialProcess.processFlow.map(step => ({
+        id: step.name.toLowerCase().replace(/\s+/g, '-'),
+        name: step.name,
+        time: step.avgDuration,
+        target: step.avgDuration * 0.9, // Assuming target is 10% lower than actual
+        bottleneck: parseFloat(step.deviationRate) > 5, // Bottleneck if deviation rate > 5%
+        variation: parseFloat(step.deviationRate) > 7 ? 'high' : parseFloat(step.deviationRate) > 4 ? 'medium' : 'low',
+        trend: 'stable' // Default to stable if no trend data
+      }));
+    }
+    
+    // Fallback to static data if data not available
+    console.log('Using fallback static data');
     return [
       { 
         id: 'prep', 
@@ -54,7 +81,7 @@ const ProcessAnalysis = () => {
         trend: 'decreasing'
       }
     ];
-  }, []);
+  }, [data]);
   
   // Calculate total process time and other aggregate metrics
   const processMetrics = useMemo(() => {
@@ -96,14 +123,13 @@ const ProcessAnalysis = () => {
     );
   }
   
+  // Reliable rendering that doesn't depend on data
   return (
     <div className="process-flow-container">
-      {/* Header */}
       <div className="process-flow-header">
         <h1>Process Flow Visualization</h1>
       </div>
       
-      {/* Process Flow Timeline */}
       <div className="process-flow-timeline-container">
         <div className="process-flow-visualization">
           <div className="timeline-header">
@@ -113,7 +139,7 @@ const ProcessAnalysis = () => {
           
           <div className="timeline-scale">
             {Array.from({ length: Math.ceil(processMetrics.totalTime) + 1 }).map((_, i) => (
-              <div key={i} className="timeline-marker">
+              <div key={i} className="timeline-marker" style={{ left: `${(i / processMetrics.totalTime) * 100}%` }}>
                 <div className="timeline-tick"></div>
                 <div className="timeline-label">{i}</div>
               </div>
@@ -190,35 +216,35 @@ const ProcessAnalysis = () => {
                         <div className="step-recommendations">
                           <h4>Improvement Recommendations</h4>
                           <ul className="recommendations-list">
-                            {step.id === 'prep' && (
+                            {step.id === 'assembly' && (
                               <>
                                 <li>Implement electronic documentation system</li>
                                 <li>Create standardized templates</li>
                               </>
                             )}
-                            {step.id === 'proc' && (
+                            {step.id === 'quality-control' && (
                               <>
                                 <li>Implement preventive maintenance program</li>
                                 <li>Enhance operator training</li>
                                 <li>Implement pre-processing quality checks</li>
                               </>
                             )}
-                            {step.id === 'qa' && (
-                              <>
-                                <li>Implement automated testing where possible</li>
-                                <li>Develop checklist-based testing approach</li>
-                              </>
-                            )}
-                            {step.id === 'pkg' && (
+                            {step.id === 'packaging' && (
                               <>
                                 <li>Improve material inventory management</li>
                                 <li>Consider equipment upgrades</li>
                               </>
                             )}
-                            {step.id === 'ship' && (
+                            {step.id === 'final-review' && (
                               <>
                                 <li>Streamline documentation approval process</li>
                                 <li>Improve coordination with logistics providers</li>
+                              </>
+                            )}
+                            {!['assembly', 'quality-control', 'packaging', 'final-review'].includes(step.id) && (
+                              <>
+                                <li>Analyze process for improvement opportunities</li>
+                                <li>Review standard operating procedures</li>
                               </>
                             )}
                           </ul>
