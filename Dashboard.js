@@ -12,10 +12,17 @@ const Dashboard = () => {
   console.log('Dashboard rendering started');
   
   const { data, isLoading, error, refreshData, lastUpdated } = useDataContext();
-  console.log('Dashboard got DataContext:', { hasData: !!data, isLoading, hasError: !!error });
+  console.log('Dashboard data state:', {
+    hasData: !!data,
+    dataKeys: data ? Object.keys(data) : [],
+    isLoading,
+    hasError: !!error,
+    errorMessage: error,
+    lastUpdated
+  });
   
   const timeFilter = useTimeFilterContext();
-  console.log('Dashboard got TimeFilterContext:', timeFilter);
+  console.log('TimeFilter state:', timeFilter);
   
   const [timeRange, setTimeRange] = useState('6m'); // 1m, 3m, 6m, 12m, ytd
   const [expandedWidgetId, setExpandedWidgetId] = useState(null);
@@ -23,6 +30,11 @@ const Dashboard = () => {
   
   // Memoize calculated values to prevent recalculations on re-render
   const metrics = useMemo(() => {
+    console.log('Calculating metrics from data:', {
+      hasOverview: !!data?.overview,
+      overviewKeys: data?.overview ? Object.keys(data.overview) : []
+    });
+    
     if (!data || !data.overview) {
       return {
         totalRecords: 0,

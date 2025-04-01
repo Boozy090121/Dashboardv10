@@ -39,10 +39,14 @@ export const DataProvider = ({ children }) => {
 
   // Load data function wrapped in useCallback
   const loadData = useCallback(async () => {
-    console.log('Starting to load data...');
+    console.log('Starting to load data...', {
+      isMounted: isMountedRef.current,
+      hasExistingController: !!abortControllerRef.current
+    });
     
     // If there's already a fetch in progress, abort it
     if (abortControllerRef.current) {
+      console.log('Aborting existing fetch request');
       abortControllerRef.current.abort();
     }
     
@@ -51,7 +55,10 @@ export const DataProvider = ({ children }) => {
     const { signal } = abortControllerRef.current;
     
     // Update loading state
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState(prev => {
+      console.log('Setting loading state, previous state:', prev);
+      return { ...prev, isLoading: true, error: null };
+    });
     
     try {
       // Try loading from /data/complete-data.json first
@@ -65,17 +72,29 @@ export const DataProvider = ({ children }) => {
       });
       
       // Check if component is still mounted
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) {
+        console.log('Component unmounted during fetch, aborting');
+        return;
+      }
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', [...response.headers.entries()]);
+      console.log('Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries([...response.headers.entries()]),
+        url: response.url
+      });
       
       if (!response.ok) {
         throw new Error(`Failed to load data: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('Data loaded successfully:', data ? 'Data present' : 'No data');
+      console.log('Data parsed:', {
+        hasData: !!data,
+        topLevelKeys: Object.keys(data),
+        overviewPresent: !!data?.overview,
+        overviewKeys: data?.overview ? Object.keys(data.overview) : []
+      });
       
       // Validate data structure
       if (!data || !data.overview) {
@@ -84,13 +103,14 @@ export const DataProvider = ({ children }) => {
       
       // Check if component is still mounted before updating state
       if (isMountedRef.current) {
+        console.log('Updating state with new data');
         setState({
           isLoading: false,
           error: null,
           data,
           lastUpdated: new Date()
         });
-        console.log('State updated with new data');
+        console.log('State updated successfully');
       }
     } catch (error) {
       console.error('Error details:', {
