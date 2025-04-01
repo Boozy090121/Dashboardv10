@@ -247,25 +247,36 @@ fs.writeFileSync(indexHtmlFile, `<!DOCTYPE html>
 
 // Create site.webmanifest for PWA support
 console.log('Creating site.webmanifest...');
-fs.writeFileSync(path.join(publicDir, 'site.webmanifest'), `{
+const manifestContent = {
   "name": "Manufacturing Dashboard",
   "short_name": "Mfg Dashboard",
+  "description": "Manufacturing Performance Metrics Dashboard",
+  "start_url": "/",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "theme_color": "#1a73e8",
   "background_color": "#ffffff",
-  "display": "standalone"
-}`);
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+};
+
+fs.writeFileSync(
+  path.join(publicDir, 'site.webmanifest'),
+  JSON.stringify(manifestContent, null, 2)
+);
 
 // Create robots.txt
 console.log('Creating robots.txt...');
