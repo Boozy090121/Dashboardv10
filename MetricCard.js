@@ -1,75 +1,73 @@
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, MoreHorizontal, X } from 'lucide-react';
 
 const MetricCard = ({
   title,
   value,
   previousValue,
-  trend = 'none',
+  trend = 'neutral',
   percentage = false,
-  currency = false,
-  status = 'normal',
-  goal = null,
+  goal,
   goalLabel = 'Target',
-  trendData = [],
+  status = 'normal',
   showDetails = false,
-  detailMetrics = []
+  detailMetrics = [],
+  trendData = []
 }) => {
-  const [showingDetails, setShowingDetails] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
   
-  // Calculate the change percentage
-  const calculateChange = () => {
-    if (!previousValue || previousValue === 0) return 0;
-    return ((value - previousValue) / Math.abs(previousValue)) * 100;
-  };
-  
-  const change = calculateChange();
-  
-  // Format the displayed value
   const formatValue = (val) => {
-    if (val === null || val === undefined) return '-';
-    
-    // For large numbers, use locale string (adds commas)
-    let formatted = typeof val === 'number' && val >= 1000 
-      ? val.toLocaleString() 
-      : val;
-    
-    // Format based on type
-    if (percentage) {
-      formatted = typeof val === 'number' ? val.toFixed(1) + '%' : val;
-    } else if (currency) {
-      formatted = typeof val === 'number' ? '$' + val.toLocaleString() : val;
-    } else if (typeof val === 'number' && !Number.isInteger(val)) {
-      formatted = val.toFixed(1);
-    }
-    
-    return formatted;
+    if (val === undefined || val === null) return '-';
+    if (percentage) return val.toFixed(1) + '%';
+    return val.toLocaleString();
   };
   
-  // Status color mapping
-  const statusColors = {
-    success: 'bg-green-50 text-green-700',
-    normal: 'bg-blue-50 text-blue-700',
-    warning: 'bg-amber-50 text-amber-700',
-    critical: 'bg-red-50 text-red-700'
+  const calculateTrendPercentage = () => {
+    if (!previousValue || previousValue === 0) return 0;
+    const change = ((value - previousValue) / previousValue) * 100;
+    return change.toFixed(1);
   };
-  
-  const trendColors = {
-    up: change >= 0 ? 'text-green-500' : 'text-red-500',
-    down: change >= 0 ? 'text-red-500' : 'text-green-500',
-    none: 'text-gray-400'
+
+  const trendPercentage = calculateTrendPercentage();
+  const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '–';
+  const trendClass = 
+    trend === 'up' ? 'text-green-500' : 
+    trend === 'down' ? 'text-red-500' : 
+    'text-gray-400';
+
+  const statusClass = 
+    status === 'success' ? 'border-l-4 border-green-500' : 
+    status === 'warning' ? 'border-l-4 border-yellow-500' : 
+    status === 'critical' ? 'border-l-4 border-red-500' : 
+    'border-l-4 border-transparent';
+
+  const toggleDetails = () => {
+    setShowDetailView(!showDetailView);
   };
+
+  // Calculate goal percentage for progress bar
+  const goalPercentage = goal ? Math.min(100, (value / goal) * 100) : 0;
   
+  // Calculate heights for mini chart bars
+  const maxTrendValue = trendData.length > 0 
+    ? Math.max(...trendData.map(item => item.value))
+    : 0;
+    
+  const getBarHeight = (val) => {
+    if (maxTrendValue === 0) return '0%';
+    return `${Math.max(10, (val / maxTrendValue) * 100)}%`;
+  };
+
   return (
-    <div className="metric-card">
+    <div className={`metric-card ${statusClass}`}>
       <div className="metric-header">
         <h3 className="metric-title">{title}</h3>
         {showDetails && (
           <button 
-            className="details-button"
-            onClick={() => setShowingDetails(!showingDetails)}
+            className="details-button" 
+            onClick={toggleDetails}
+            aria-label="Toggle details"
           >
-            <MoreHorizontal size={16} />
+            {showDetailView ? '−' : '+'}
           </button>
         )}
       </div>
@@ -77,62 +75,57 @@ const MetricCard = ({
       <div className="metric-value-container">
         <div className="metric-value">{formatValue(value)}</div>
         
-        {trend !== 'none' && (
-          <div className={`metric-trend ${trendColors[trend]}`}>
-            {trend === 'up' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-            <span>{Math.abs(change).toFixed(1)}%</span>
+        {previousValue !== undefined && (
+          <div className={`metric-trend ${trendClass}`}>
+            <span>{trendIcon}</span>
+            <span>{Math.abs(trendPercentage)}%</span>
           </div>
         )}
       </div>
       
-      {goal !== null && (
+      {/* Progress toward goal */}
+      {goal && (
         <div className="metric-goal">
           <div className="goal-bar-container">
             <div className="goal-bar-background">
               <div 
                 className="goal-bar-progress"
-                style={{ 
-                  width: `${Math.min(100, (value / goal) * 100)}%`,
-                  backgroundColor: status === 'critical' ? '#ef4444' : 
-                                   status === 'warning' ? '#f59e0b' : 
-                                   status === 'success' ? '#10b981' : '#3b82f6'
-                }}
-              />
+                style={{ width: `${goalPercentage}%` }}
+              ></div>
             </div>
           </div>
           <div className="goal-text">
+            <span>Current</span>
             <span>{goalLabel}: {formatValue(goal)}</span>
           </div>
         </div>
       )}
       
-      {/* Show mini chart if trendData exists */}
-      {trendData && trendData.length > 0 && !showingDetails && (
+      {/* Mini chart */}
+      {trendData.length > 0 && (
         <div className="metric-mini-chart">
-          {trendData.map((point, i) => (
+          {trendData.map((item, idx) => (
             <div 
-              key={i}
+              key={idx}
               className="mini-chart-bar"
               style={{ 
-                height: `${(point.value / Math.max(...trendData.map(p => p.value))) * 24}px`
+                height: getBarHeight(item.value),
+                opacity: idx === trendData.length - 1 ? 1 : 0.6 + (idx * 0.1)
               }}
-            />
+            ></div>
           ))}
         </div>
       )}
       
-      {/* Detail View */}
-      {showingDetails && showDetails && (
+      {/* Detail metrics */}
+      {showDetails && showDetailView && detailMetrics.length > 0 && (
         <div className="metric-details">
           <div className="details-header">
-            <h4>Breakdown</h4>
-            <button onClick={() => setShowingDetails(false)}>
-              <X size={16} />
-            </button>
+            <h4>Details</h4>
           </div>
           <div className="details-content">
-            {detailMetrics.map((metric, index) => (
-              <div key={index} className="detail-item">
+            {detailMetrics.map((metric, idx) => (
+              <div key={idx} className="detail-item">
                 <span className="detail-label">{metric.label}</span>
                 <span className="detail-value">{formatValue(metric.value)}</span>
               </div>

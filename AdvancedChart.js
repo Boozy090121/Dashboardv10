@@ -1,292 +1,288 @@
 import React, { useState, useCallback } from 'react';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  ReferenceLine
-} from 'recharts';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 const AdvancedChart = ({
   title,
+  description,
   data = [],
-  type = 'bar',
+  type = 'bar', // 'bar', 'line', 'pie', 'donut', 'area'
   xDataKey,
   yDataKey,
   categories = [],
-  comparisonValue = null,
-  comparisonLabel = 'Target',
-  percentage = false,
   height = 300,
+  percentage = false,
+  comparisonValue,
+  comparisonLabel,
   allowDownload = false,
   onDrillDown = null,
-  description = ''
 }) => {
-  const [activeIndex, setActiveIndex] = useState(null);
   const [drillDownData, setDrillDownData] = useState(null);
-
-  // For bar and line charts, ensure yDataKey is an array
-  const yDataKeys = Array.isArray(yDataKey) ? yDataKey : [yDataKey];
   
-  // Handle pie/donut chart segment click for drill down
-  const handlePieClick = useCallback((entry, index) => {
-    if (onDrillDown) {
-      const result = onDrillDown(entry, index);
-      if (result) {
-        setDrillDownData(result);
-      }
+  // Function to handle drill-down click
+  const handleDataPointClick = useCallback((item, index) => {
+    if (!onDrillDown) return;
+    
+    const drillDownResult = onDrillDown(item, index);
+    if (drillDownResult) {
+      setDrillDownData(drillDownResult);
     }
-    setActiveIndex(index);
   }, [onDrillDown]);
-
-  // Back from drill down
-  const handleBackClick = () => {
+  
+  // Function to go back from drill-down view
+  const handleBackClick = useCallback(() => {
     setDrillDownData(null);
-    setActiveIndex(null);
-  };
-
-  // Format value for tooltip
+  }, []);
+  
+  // Function to simulate chart download
+  const handleDownload = useCallback(() => {
+    alert('Chart download simulation: Would download a PNG image of this chart');
+  }, []);
+  
+  // Data formatting helper
   const formatValue = (value) => {
-    if (typeof value !== 'number') return value;
-    return percentage ? `${value.toFixed(1)}%` : value.toLocaleString();
-  };
-
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload || !payload.length) return null;
-    
-    return (
-      <div className="custom-tooltip">
-        <p className="tooltip-label">{label}</p>
-        {payload.map((entry, index) => (
-          <p 
-            key={index} 
-            className="tooltip-value"
-            style={{ color: entry.color }}
-          >
-            {entry.name}: {formatValue(entry.value)}
-          </p>
-        ))}
-      </div>
-    );
-  };
-
-  // Handle chart download (as PNG)
-  const handleDownload = () => {
-    const svgElement = document.querySelector(`.chart-container-${title.replace(/\s+/g, '-').toLowerCase()} svg`);
-    if (!svgElement) return;
-    
-    const svgData = new XMLSerializer().serializeToString(svgElement);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      const dataURL = canvas.toDataURL('image/png');
-      
-      const a = document.createElement('a');
-      a.href = dataURL;
-      a.download = `${title.replace(/\s+/g, '-').toLowerCase()}-chart.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    };
-    
-    img.src = `data:image/svg+xml;base64,${btoa(svgData)}`;
-  };
-
-  // Render the appropriate chart type
-  const renderChart = () => {
-    if (drillDownData) {
-      // Render drill down chart (always a bar chart for simplicity)
-      return (
-        <div className="drill-down-chart">
-          <div className="drill-down-header">
-            <button className="back-button" onClick={handleBackClick}>
-              &larr; Back
-            </button>
-            <h3>{drillDownData.title}</h3>
-          </div>
-          <ResponsiveContainer width="100%" height={height}>
-            <BarChart data={drillDownData.data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      );
+    if (percentage) {
+      return `${value.toFixed(1)}%`;
     }
-
+    return value.toLocaleString();
+  };
+  
+  // Render different chart types based on the type prop
+  const renderChart = () => {
+    // If we have drill-down data, show that instead
+    const chartData = drillDownData ? drillDownData.data : data;
+    const chartTitle = drillDownData ? drillDownData.title : title;
+    
+    // Determine which data to render based on chart type
     switch (type) {
-      case 'bar':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={xDataKey} />
-              <YAxis 
-                domain={[0, 'auto']} 
-                tickFormatter={value => percentage ? `${value}%` : value} 
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              {comparisonValue && (
-                <ReferenceLine
-                  y={comparisonValue}
-                  stroke="#ff6b6b"
-                  strokeDasharray="3 3"
-                  label={comparisonLabel}
-                />
-              )}
-              {yDataKeys.map((key, index) => (
-                <Bar 
-                  key={key} 
-                  dataKey={key} 
-                  fill={COLORS[index % COLORS.length]} 
-                  name={categories[index] || key}
-                />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        );
-      
-      case 'line':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={xDataKey} />
-              <YAxis 
-                domain={[0, 'auto']} 
-                tickFormatter={value => percentage ? `${value}%` : value} 
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              {comparisonValue && (
-                <ReferenceLine
-                  y={comparisonValue}
-                  stroke="#ff6b6b"
-                  strokeDasharray="3 3"
-                  label={comparisonLabel}
-                />
-              )}
-              {yDataKeys.map((key, index) => (
-                <Line 
-                  key={key} 
-                  type="monotone" 
-                  dataKey={key} 
-                  stroke={COLORS[index % COLORS.length]} 
-                  name={categories[index] || key}
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  activeDot={{ r: 6 }}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        );
-      
       case 'pie':
-        return (
-          <ResponsiveContainer width="100%" height={height}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey={yDataKey}
-                nameKey={xDataKey}
-                label={({ name, percent }) => 
-                  percentage
-                    ? `${name}: ${(percent * 100).toFixed(1)}%`
-                    : `${name}: ${formatValue(data.find(item => item[xDataKey] === name)[yDataKey])}`
-                }
-                onClick={onDrillDown ? handlePieClick : undefined}
-                activeIndex={activeIndex}
-              >
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        );
-      
       case 'donut':
         return (
-          <ResponsiveContainer width="100%" height={height}>
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={true}
-                innerRadius={60}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey={yDataKey}
-                nameKey={xDataKey}
-                label={({ name, percent }) => 
-                  percentage
-                    ? `${name}: ${(percent * 100).toFixed(1)}%`
-                    : `${name}: ${formatValue(data.find(item => item[xDataKey] === name)[yDataKey])}`
-                }
-                onClick={onDrillDown ? handlePieClick : undefined}
-              >
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="chart-container">
+            <h4 className="chart-title">{chartTitle}</h4>
+            <div 
+              className="chart-content pie-chart" 
+              style={{ height: height, position: 'relative' }}
+            >
+              <div className="pie-segments">
+                {chartData.map((item, index) => {
+                  const value = typeof yDataKey === 'string' ? item[yDataKey] : item.value;
+                  const name = typeof xDataKey === 'string' ? item[xDataKey] : item.name;
+                  const percentage = 
+                    item.percentage || 
+                    (chartData.reduce((sum, d) => sum + (typeof yDataKey === 'string' ? d[yDataKey] : d.value), 0) > 0
+                      ? (value / chartData.reduce((sum, d) => sum + (typeof yDataKey === 'string' ? d[yDataKey] : d.value), 0)) * 100
+                      : 0);
+                  
+                  // For visual purposes, generate colors
+                  const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                  const color = colors[index % colors.length];
+                  
+                  // For donut chart, create a circle in the middle
+                  const isDonut = type === 'donut';
+                  
+                  return (
+                    <div 
+                      key={index}
+                      className="pie-segment-container"
+                      onClick={() => handleDataPointClick(item, index)}
+                      style={{ cursor: onDrillDown ? 'pointer' : 'default' }}
+                    >
+                      <div 
+                        className="pie-segment" 
+                        style={{ 
+                          backgroundColor: color,
+                          width: '80px',
+                          height: '80px',
+                          marginBottom: '10px',
+                          borderRadius: '5px'
+                        }}
+                      ></div>
+                      <div className="pie-label">
+                        <div>{name}</div>
+                        <div className="pie-value">
+                          {formatValue(value)} ({percentage.toFixed(1)}%)
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Placeholder pie visual */}
+              <div className="pie-visual" style={{ 
+                position: 'absolute', 
+                top: '10px', 
+                right: '10px',
+                width: '150px',
+                height: '150px',
+                borderRadius: '50%',
+                background: 'conic-gradient(#3b82f6 0% 55%, #ef4444 55% 75%, #10b981 75% 90%, #f59e0b 90% 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {type === 'donut' && (
+                  <div style={{
+                    width: '70px',
+                    height: '70px',
+                    borderRadius: '50%',
+                    background: 'white'
+                  }}></div>
+                )}
+              </div>
+            </div>
+          </div>
         );
-      
+        
+      case 'bar':
+        return (
+          <div className="chart-container">
+            <h4 className="chart-title">{chartTitle}</h4>
+            <div className="chart-content bar-chart" style={{ height }}>
+              {chartData.map((item, index) => {
+                const value = typeof yDataKey === 'string' ? item[yDataKey] : item.value;
+                const name = typeof xDataKey === 'string' ? item[xDataKey] : item.name;
+                
+                // Calculate bar height percentage
+                const maxValue = Math.max(...chartData.map(d => 
+                  typeof yDataKey === 'string' ? d[yDataKey] : d.value
+                ));
+                const barHeight = (value / maxValue) * 80; // 80% of container height max
+                
+                // For visual purposes, generate colors
+                const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                const color = colors[index % colors.length];
+                
+                return (
+                  <div 
+                    key={index}
+                    className="bar-item"
+                    onClick={() => handleDataPointClick(item, index)}
+                    style={{ cursor: onDrillDown ? 'pointer' : 'default' }}
+                  >
+                    <div className="bar-container">
+                      <div 
+                        className="bar" 
+                        style={{ 
+                          height: `${barHeight}%`, 
+                          backgroundColor: color 
+                        }}
+                      >
+                        <span className="bar-value">{formatValue(value)}</span>
+                      </div>
+                      
+                      {comparisonValue && (
+                        <div 
+                          className="comparison-line"
+                          style={{ 
+                            position: 'absolute',
+                            width: '100%',
+                            height: '2px',
+                            backgroundColor: '#000',
+                            bottom: `${(comparisonValue / maxValue) * 80}%`,
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className="bar-label">{name}</div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {comparisonValue && comparisonLabel && (
+              <div className="comparison-legend">
+                <span className="comparison-indicator"></span>
+                <span className="comparison-label">{comparisonLabel}: {formatValue(comparisonValue)}</span>
+              </div>
+            )}
+          </div>
+        );
+        
+      case 'line':
+        return (
+          <div className="chart-container">
+            <h4 className="chart-title">{chartTitle}</h4>
+            <div className="chart-content line-chart" style={{ height }}>
+              <div className="chart-placeholder">
+                <div className="line-chart-visual" style={{
+                  width: '100%',
+                  height: '200px',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-between'
+                }}>
+                  {/* Simplified visual line chart */}
+                  <svg width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="none">
+                    <path 
+                      d="M0,150 C50,120 100,180 150,100 C200,20 250,90 300,60 C350,30 400,50 500,10" 
+                      stroke="#3b82f6" 
+                      strokeWidth="3" 
+                      fill="none"
+                    />
+                    {comparisonValue && (
+                      <line 
+                        x1="0" 
+                        y1={200 - (comparisonValue / 100 * 200)} 
+                        x2="500" 
+                        y2={200 - (comparisonValue / 100 * 200)}
+                        stroke="#000" 
+                        strokeWidth="2" 
+                        strokeDasharray="5,5" 
+                      />
+                    )}
+                  </svg>
+                </div>
+                
+                <div className="line-chart-labels">
+                  {chartData.map((item, index) => (
+                    <div key={index} className="line-label">
+                      {typeof xDataKey === 'string' ? item[xDataKey] : item.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {comparisonValue && comparisonLabel && (
+              <div className="comparison-legend">
+                <span className="comparison-indicator"></span>
+                <span className="comparison-label">{comparisonLabel}: {formatValue(comparisonValue)}</span>
+              </div>
+            )}
+          </div>
+        );
+        
       default:
         return <div>Unsupported chart type: {type}</div>;
     }
   };
 
   return (
-    <div className={`chart-container chart-container-${title.replace(/\s+/g, '-').toLowerCase()}`}>
+    <div className="advanced-chart">
       <div className="chart-header">
-        <div className="chart-title">
-          <h3>{drillDownData ? drillDownData.title : title}</h3>
-          {description && <p className="chart-description">{description}</p>}
-        </div>
+        {drillDownData && (
+          <button 
+            onClick={handleBackClick}
+            className="back-button"
+          >
+            ← Back
+          </button>
+        )}
+        
+        {description && (
+          <div className="chart-description">{description}</div>
+        )}
+        
         {allowDownload && (
-          <button className="download-button" onClick={handleDownload}>
+          <button 
+            onClick={handleDownload}
+            className="download-button"
+          >
             Download
           </button>
         )}
       </div>
+      
       {renderChart()}
     </div>
   );
