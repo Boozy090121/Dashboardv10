@@ -1,12 +1,22 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { useDataContext } from './DataContext';
+import { useTimeFilterContext } from './TimeFilterContext';
 import DashboardHeader from './DashboardHeader';
 import MetricCard from './MetricCard';
 import AdvancedChart from './AdvancedChart';
 import DashboardGrid from './DashboardGrid';
 
+console.log('Dashboard.js file loaded');
+
 const Dashboard = () => {
+  console.log('Dashboard rendering started');
+  
   const { data, isLoading, error, refreshData, lastUpdated } = useDataContext();
+  console.log('Dashboard got DataContext:', { hasData: !!data, isLoading, hasError: !!error });
+  
+  const timeFilter = useTimeFilterContext();
+  console.log('Dashboard got TimeFilterContext:', timeFilter);
+  
   const [timeRange, setTimeRange] = useState('6m'); // 1m, 3m, 6m, 12m, ytd
   const [expandedWidgetId, setExpandedWidgetId] = useState(null);
   const [showNotice, setShowNotice] = useState(true);
@@ -135,6 +145,11 @@ const Dashboard = () => {
     }));
   }, [data]);
   
+  useEffect(() => {
+    console.log('Dashboard mounted');
+    return () => console.log('Dashboard unmounted');
+  }, []);
+  
   // Loading state
   if (isLoading && !data) {
     return (
@@ -158,6 +173,8 @@ const Dashboard = () => {
       </div>
     );
   }
+  
+  console.log('Dashboard rendering with data');
   
   return (
     <div className="dashboard-container">

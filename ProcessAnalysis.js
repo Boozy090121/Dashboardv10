@@ -1,12 +1,28 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDataContext } from './DataContext';
+import { useTimeFilterContext } from './TimeFilterContext';
+
+console.log('ProcessAnalysis.js file loaded');
 
 const ProcessAnalysis = () => {
+  console.log('ProcessAnalysis rendering started');
+  
   const { data, isLoading, error, refreshData } = useDataContext();
+  console.log('ProcessAnalysis got DataContext:', { 
+    hasData: !!data, 
+    isLoading, 
+    hasError: !!error,
+    hasProcessFlow: !!(data?.commercialProcess?.processFlow)
+  });
+  
+  const timeFilter = useTimeFilterContext();
+  console.log('ProcessAnalysis got TimeFilterContext:', timeFilter);
+  
   const [expandedStep, setExpandedStep] = useState(null);
   
   // Add debugging effect for data
   useEffect(() => {
+    console.log('ProcessAnalysis mounted');
     if (data) {
       console.log('Process Analysis component received data');
       console.log('commercialProcess exists:', Boolean(data.commercialProcess));
@@ -15,6 +31,7 @@ const ProcessAnalysis = () => {
         console.log('processFlow data:', data.commercialProcess.processFlow);
       }
     }
+    return () => console.log('ProcessAnalysis unmounted');
   }, [data]);
   
   // Process step data with enhanced analysis - use real data from JSON if available

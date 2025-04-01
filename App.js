@@ -13,14 +13,19 @@ import Widgets from './Widgets';
 import UserSettings from './UserSettings';
 import PlaceholderComponent from './PlaceholderComponent';
 
+// Log that App.js was loaded
+console.log('App.js file loaded');
+
 // Error boundary component to catch rendering errors
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
+    console.log('ErrorBoundary constructed');
   }
 
   static getDerivedStateFromError(error) {
+    console.log('ErrorBoundary caught error:', error.message);
     return { hasError: true, error };
   }
 
@@ -30,8 +35,10 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      console.log('ErrorBoundary rendering fallback UI');
       return <PlaceholderComponent tabName={this.props.tabName || "Tab"} />;
     }
+    console.log('ErrorBoundary rendering children');
     return this.props.children;
   }
 }
@@ -40,8 +47,11 @@ class ErrorBoundary extends React.Component {
  * Main application component with tab navigation
  */
 const App = () => {
+  console.log('App component rendering started');
+  
   // Add critical inline styles to ensure tabs render correctly
   useEffect(() => {
+    console.log('Adding critical inline styles');
     const style = document.createElement('style');
     style.innerHTML = `
       /* Critical tab fix with highest priority */
@@ -102,10 +112,13 @@ const App = () => {
 
   // Force a reload if the app has been loaded for more than 10 seconds and is in a bad state
   useEffect(() => {
+    console.log('Setting up tab button check timeout');
     const loadTimeout = setTimeout(() => {
       if (document.querySelectorAll('.tab-button').length === 0) {
         console.log('Tab buttons not rendered properly, forcing reload');
         window.location.reload();
+      } else {
+        console.log('Tab buttons detected:', document.querySelectorAll('.tab-button').length);
       }
     }, 10000);
     
@@ -114,18 +127,19 @@ const App = () => {
 
   // Check URL for initial tab selection
   const [activeTab, setActiveTab] = useState(() => {
-    // Check URL hash for #process-flow or other tab indicators
+    // Check URL hash for tab indicators
     const hash = window.location.hash.replace('#', '');
     console.log('URL hash:', hash);
     
     // If hash matches a valid tab, use that
-    if (['dashboard', 'intelligence', 'process-flow', 'lot-analytics', 
-         'visualizations', 'insights', 'customer-comments', 'widgets', 'settings'].includes(hash)) {
+    const validTabs = ['dashboard', 'process-flow', 'lot-analytics', 'visualizations', 'intelligence', 'insights', 'customer-comments'];
+    if (validTabs.includes(hash)) {
       console.log('Setting initial tab from URL:', hash);
       return hash;
     }
     
     // Default to dashboard if no valid hash
+    console.log('No valid hash, defaulting to dashboard');
     return 'dashboard';
   });
   
@@ -175,12 +189,17 @@ const App = () => {
       )
     },
     { 
-      id: 'customer-comments', 
-      label: 'Customer Comments',
-      component: CustomerCommentAnalysis,
+      id: 'visualizations', 
+      label: 'Visualizations',
+      component: EnhancedVisualizations,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5"></path>
+          <path d="M16 2v4"></path>
+          <path d="M8 2v4"></path>
+          <path d="M3 10h18"></path>
+          <circle cx="18" cy="18" r="3"></circle>
+          <path d="m19.5 19.5 2.5 2.5"></path>
         </svg>
       )
     },
@@ -206,17 +225,12 @@ const App = () => {
       )
     },
     { 
-      id: 'visualizations', 
-      label: 'Visualizations',
-      component: EnhancedVisualizations,
+      id: 'customer-comments', 
+      label: 'Customer Comments',
+      component: CustomerCommentAnalysis,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.5"></path>
-          <path d="M16 2v4"></path>
-          <path d="M8 2v4"></path>
-          <path d="M3 10h18"></path>
-          <circle cx="18" cy="18" r="3"></circle>
-          <path d="m19.5 19.5 2.5 2.5"></path>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
       )
     },
@@ -251,6 +265,11 @@ const App = () => {
   const ActiveComponent = activeTabData.component;
   console.log('Rendering component for tab:', activeTab, 'Component:', ActiveComponent?.name || 'Unknown');
   
+  useEffect(() => {
+    console.log('App component mounted');
+    return () => console.log('App component unmounted');
+  }, []);
+  
   return (
     <StorageProvider>
       <DataProvider>
@@ -275,7 +294,10 @@ const App = () => {
                     position: 'relative',
                     gap: '8px'
                   }}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    console.log(`Tab ${tab.id} clicked`);
+                    setActiveTab(tab.id);
+                  }}
                 >
                   <span style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', color: activeTab === tab.id ? '#CC2030' : '#6B7280'}}>
                     {tab.icon}
@@ -287,6 +309,9 @@ const App = () => {
             
             <ErrorBoundary tabName={activeTabData.label}>
               <Suspense fallback={<div style={{padding: '40px', textAlign: 'center'}}>Loading {activeTabData.label}...</div>}>
+                <div style={{border: '1px solid #f0f0f0', padding: '5px', marginBottom: '10px', fontSize: '12px', color: '#666'}}>
+                  Debug: Rendering {activeTabData.label} component ({activeTab})
+                </div>
                 <ActiveComponent />
               </Suspense>
             </ErrorBoundary>
