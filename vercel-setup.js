@@ -643,21 +643,53 @@ self.addEventListener('fetch', event => {
 console.log('Creating/updating vercel.json...');
 const vercelConfig = {
   "version": 2,
-  "routes": [
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "build",
+  "public": true,
+  "rewrites": [
     {
-      "handle": "filesystem"
+      "source": "/static/(.*)",
+      "destination": "/static/$1"
     },
     {
-      "src": "/static/(.*)",
-      "headers": { "cache-control": "public, max-age=31536000, immutable" },
-      "continue": true
+      "source": "/favicon.ico",
+      "destination": "/favicon.ico"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
+    },
+    {
+      "source": "/site.webmanifest",
+      "destination": "/site.webmanifest"
+    },
+    {
+      "source": "/(.*)\\.png",
+      "destination": "/$1.png"
+    },
+    {
+      "source": "/(.*)\\.js",
+      "destination": "/$1.js"
+    },
+    {
+      "source": "/(.*)\\.json",
+      "destination": "/$1.json"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
       "source": "/sw.js",
       "headers": [

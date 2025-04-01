@@ -3,42 +3,50 @@
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "build",
   "public": true,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/static/(.*)",
-      "headers": { "cache-control": "public, max-age=31536000, immutable" },
-      "dest": "/static/$1"
+      "source": "/static/(.*)",
+      "destination": "/static/$1"
     },
     {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
+      "source": "/favicon.ico",
+      "destination": "/favicon.ico"
     },
     {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
     },
     {
-      "src": "/site.webmanifest",
-      "dest": "/site.webmanifest"
+      "source": "/site.webmanifest",
+      "destination": "/site.webmanifest"
     },
     {
-      "src": "/(.*)\\.png",
-      "dest": "/$1.png"
+      "source": "/(.*)\\.png",
+      "destination": "/$1.png"
     },
     {
-      "src": "/(.*)\\.js",
-      "dest": "/$1.js"
+      "source": "/(.*)\\.js",
+      "destination": "/$1.js"
     },
     {
-      "src": "/(.*)\\.json",
-      "dest": "/$1.json"
+      "source": "/(.*)\\.json",
+      "destination": "/$1.json"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
       "source": "/sw.js",
       "headers": [
