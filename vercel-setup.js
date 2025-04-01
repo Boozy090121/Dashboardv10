@@ -622,16 +622,17 @@ fs.writeFileSync(path.join(srcDir, 'App.js'), `
 import React, { useState } from 'react';
 import { DataProvider } from './DataContext';
 import Dashboard from './Dashboard';
+import ProcessAnalysis from './ProcessAnalysis';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Define all available tabs
+  // Define all available tabs to match the existing structure
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', component: Dashboard },
-    { id: 'process', label: 'Process Flow', component: () => <div className="placeholder-tab">Process Flow Visualization</div> },
-    { id: 'lots', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
-    { id: 'comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
+    { id: 'process-flow', label: 'Process Flow', component: ProcessAnalysis },
+    { id: 'lot-analytics', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
+    { id: 'customer-comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
     { id: 'insights', label: 'Insights', component: () => <div className="placeholder-tab">Data Insights Dashboard</div> }
   ];
 
@@ -2274,3 +2275,294 @@ html {
 `);
 
 console.log('Vercel build preparation completed successfully!'); 
+
+// Create ProcessAnalysis.js file
+console.log('Creating ProcessAnalysis.js...');
+fs.writeFileSync(path.join(srcDir, 'ProcessAnalysis.js'), `import React, { useState, useMemo, useCallback } from 'react';
+import { useDataContext } from './DataContext';
+
+const ProcessAnalysis = () => {
+  const { data, isLoading, error, refreshData } = useDataContext();
+  const [expandedStep, setExpandedStep] = useState(null);
+  
+  // Process step data with enhanced analysis
+  const processStepsData = useMemo(() => {
+    return [
+      { 
+        id: 'prep', 
+        name: 'Order Preparation', 
+        time: 2.6, 
+        target: 2.0,
+        bottleneck: false,
+        variation: 'medium',
+        trend: 'stable'
+      },
+      { 
+        id: 'proc', 
+        name: 'Processing', 
+        time: 7.8, 
+        target: 6.5,
+        bottleneck: true,
+        variation: 'high',
+        trend: 'increasing'
+      },
+      { 
+        id: 'qa', 
+        name: 'Quality Assessment', 
+        time: 3.4, 
+        target: 3.0,
+        bottleneck: false,
+        variation: 'low',
+        trend: 'decreasing'
+      },
+      { 
+        id: 'pkg', 
+        name: 'Packaging', 
+        time: 4.2, 
+        target: 3.5,
+        bottleneck: false,
+        variation: 'medium',
+        trend: 'stable'
+      },
+      { 
+        id: 'ship', 
+        name: 'Release/Shipping', 
+        time: 3.8, 
+        target: 3.0,
+        bottleneck: false,
+        variation: 'medium',
+        trend: 'decreasing'
+      }
+    ];
+  }, []);
+  
+  // Calculate total process time and other aggregate metrics
+  const processMetrics = useMemo(() => {
+    const totalTime = processStepsData.reduce((sum, step) => sum + step.time, 0);
+    const totalTarget = processStepsData.reduce((sum, step) => sum + step.target, 0);
+    
+    return {
+      totalTime,
+      totalTarget
+    };
+  }, [processStepsData]);
+  
+  // Toggle expanded step view
+  const toggleStepExpansion = useCallback((stepId) => {
+    setExpandedStep(expandedStep === stepId ? null : stepId);
+  }, [expandedStep]);
+  
+  // Loading state
+  if (isLoading && !data) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading process flow data...</p>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error && !data) {
+    return (
+      <div className="error-container">
+        <div className="error-icon">⚠️</div>
+        <h3>Error Loading Data</h3>
+        <p>{error}</p>
+        <button onClick={refreshData} className="refresh-button">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="process-flow-container">
+      {/* Header */}
+      <div className="process-flow-header">
+        <h1>Process Flow Visualization</h1>
+      </div>
+      
+      {/* Process Flow Timeline */}
+      <div className="process-flow-timeline-container">
+        <div className="process-flow-visualization">
+          <div className="timeline-header">
+            <div className="timeline-start">Start</div>
+            <div className="timeline-end">End ({processMetrics.totalTime.toFixed(1)} days)</div>
+          </div>
+          
+          <div className="timeline-scale">
+            {Array.from({ length: Math.ceil(processMetrics.totalTime) + 1 }).map((_, i) => (
+              <div key={i} className="timeline-marker">
+                <div className="timeline-tick"></div>
+                <div className="timeline-label">{i}</div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="process-steps">
+            {processStepsData.map((step, index) => {
+              // Calculate the position and width based on cumulative time
+              const previousStepsTime = processStepsData
+                .slice(0, index)
+                .reduce((sum, prevStep) => sum + prevStep.time, 0);
+              
+              const stepStartPercent = (previousStepsTime / processMetrics.totalTime) * 100;
+              const stepWidthPercent = (step.time / processMetrics.totalTime) * 100;
+              
+              return (
+                <div key={step.id} className="process-step-wrapper">
+                  <div 
+                    className={\`process-step-block \${step.bottleneck ? 'bottleneck' : ''} \${expandedStep === step.id ? 'expanded' : ''}\`}
+                    style={{ 
+                      left: \`\${stepStartPercent}%\`, 
+                      width: \`\${stepWidthPercent}%\` 
+                    }}
+                    onClick={() => toggleStepExpansion(step.id)}
+                  >
+                    <div className="step-header">
+                      <div className="step-name">{step.name}</div>
+                      <div className="step-time">
+                        {step.time.toFixed(1)} days
+                        <span className={\`trend-indicator \${step.trend}\`}>
+                          {step.trend === 'increasing' ? '↑' : step.trend === 'decreasing' ? '↓' : '→'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="step-target-bar">
+                      <div className="step-target-marker" style={{ left: \`\${(step.target / step.time) * 100}%\` }}></div>
+                    </div>
+                    
+                    {step.bottleneck && <div className="bottleneck-indicator">Bottleneck</div>}
+                    
+                    <div className="step-variation-indicator">
+                      <span className={\`variation-dot \${step.variation}\`}></span>
+                      <span className="variation-label">{step.variation} variability</span>
+                    </div>
+                  </div>
+                  
+                  {expandedStep === step.id && (
+                    <div className="step-details-panel">
+                      <div className="step-details-content">
+                        <h3>{step.name} Analysis</h3>
+                        
+                        <div className="step-metrics">
+                          <div className="step-metric">
+                            <div className="metric-name">Current Time</div>
+                            <div className="metric-value">{step.time.toFixed(1)} days</div>
+                          </div>
+                          <div className="step-metric">
+                            <div className="metric-name">Target Time</div>
+                            <div className="metric-value">{step.target.toFixed(1)} days</div>
+                          </div>
+                          <div className="step-metric">
+                            <div className="metric-name">Opportunity</div>
+                            <div className="metric-value">{((step.time - step.target) / step.time * 100).toFixed(1)}%</div>
+                          </div>
+                          <div className="step-metric">
+                            <div className="metric-name">Variation</div>
+                            <div className="metric-value">{step.variation}</div>
+                          </div>
+                        </div>
+                        
+                        {/* Improvement Recommendations */}
+                        <div className="step-recommendations">
+                          <h4>Improvement Recommendations</h4>
+                          <ul className="recommendations-list">
+                            {step.id === 'prep' && (
+                              <>
+                                <li>Implement electronic documentation system</li>
+                                <li>Create standardized templates</li>
+                              </>
+                            )}
+                            {step.id === 'proc' && (
+                              <>
+                                <li>Implement preventive maintenance program</li>
+                                <li>Enhance operator training</li>
+                                <li>Implement pre-processing quality checks</li>
+                              </>
+                            )}
+                            {step.id === 'qa' && (
+                              <>
+                                <li>Implement automated testing where possible</li>
+                                <li>Develop checklist-based testing approach</li>
+                              </>
+                            )}
+                            {step.id === 'pkg' && (
+                              <>
+                                <li>Improve material inventory management</li>
+                                <li>Consider equipment upgrades</li>
+                              </>
+                            )}
+                            {step.id === 'ship' && (
+                              <>
+                                <li>Streamline documentation approval process</li>
+                                <li>Improve coordination with logistics providers</li>
+                              </>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="process-flow-instructions">
+        <p>Click on any process step for detailed analysis and recommendations</p>
+      </div>
+    </div>
+  );
+};
+
+export default ProcessAnalysis;`);
+
+// Update App.js to include ProcessAnalysis in the tabs
+console.log('Updating App.js to include ProcessAnalysis...');
+fs.writeFileSync(path.join(srcDir, 'App.js'), `import React, { useState } from 'react';
+import { DataProvider } from './DataContext';
+import Dashboard from './Dashboard';
+import ProcessAnalysis from './ProcessAnalysis';
+
+const App = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Define all available tabs to match the existing structure
+  const tabs = [
+    { id: 'dashboard', label: 'Dashboard', component: Dashboard },
+    { id: 'process-flow', label: 'Process Flow', component: ProcessAnalysis },
+    { id: 'lot-analytics', label: 'Lot Analytics', component: () => <div className="placeholder-tab">Lot Analytics Dashboard</div> },
+    { id: 'customer-comments', label: 'Customer Comments', component: () => <div className="placeholder-tab">Customer Comment Analysis</div> },
+    { id: 'insights', label: 'Insights', component: () => <div className="placeholder-tab">Data Insights Dashboard</div> }
+  ];
+
+  // Get the active component to render
+  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component || Dashboard;
+  
+  return (
+    <DataProvider>
+      <div className="app-container">
+        <div className="tabs-container">
+          {tabs.map(tab => (
+            <button 
+              key={tab.id}
+              className={\`tab-button \${activeTab === tab.id ? 'active' : ''}\`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        
+        <ActiveComponent />
+      </div>
+    </DataProvider>
+  );
+};
+
+export default App;`);
