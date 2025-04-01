@@ -269,23 +269,25 @@ export default DataContext;
 // Create Dashboard.js (abbreviated version for space)
 console.log('Creating Dashboard.js...');
 fs.writeFileSync(path.join(srcDir, 'Dashboard.js'), `
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useDataContext } from './DataContext';
 import DashboardGrid from './DashboardGrid';
 import MetricCard from './MetricCard';
 import AdvancedChart from './AdvancedChart';
-import { RefreshCw, Settings, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
 
 const Dashboard = () => {
   const { data, isLoading, error, refreshData, lastUpdated } = useDataContext();
+  const [timeRange, setTimeRange] = useState('6m'); // 1m, 3m, 6m, 12m, ytd
   
-  // Available time ranges for filtering
-  const [timeRange, setTimeRange] = React.useState('6m'); // 1m, 3m, 6m, 12m, ytd
-  
-  // Memoize calculated values
+  // Memoize calculated values to prevent recalculations on re-render
   const metrics = useMemo(() => {
     if (!data || !data.overview) {
-      return { totalRecords: 0, totalLots: 0, rftRate: 0, issueCount: 0 };
+      return {
+        totalRecords: 0,
+        totalLots: 0,
+        rftRate: 0,
+        issueCount: 0
+      };
     }
     
     return {
@@ -307,6 +309,7 @@ const Dashboard = () => {
       }));
     }
     
+    // Default mock data
     return [
       { month: '2025-01', value: 21.2 },
       { month: '2025-02', value: 22.5 },
@@ -327,6 +330,7 @@ const Dashboard = () => {
       }));
     }
     
+    // Default mock data
     return [
       { name: 'Production', rftRate: 93.7, target: 95 },
       { name: 'Quality', rftRate: 95.4, target: 95 },
@@ -340,6 +344,32 @@ const Dashboard = () => {
     console.log(\`Refreshing widget: \${widgetId}\`);
     refreshData();
   }, [refreshData]);
+  
+  // Generate RFT breakdown data for drill-down
+  const handleRftDrillDown = useCallback((clickedData) => {
+    // Generate breakdown data based on clicked slice
+    if (clickedData?.name === 'Pass') {
+      return {
+        title: 'Success Breakdown by Department',
+        data: [
+          { name: 'Production', value: data?.internalRFT?.departmentPerformance?.[0]?.pass || 328 },
+          { name: 'Quality', value: data?.internalRFT?.departmentPerformance?.[1]?.pass || 248 },
+          { name: 'Packaging', value: data?.internalRFT?.departmentPerformance?.[2]?.pass || 187 },
+          { name: 'Logistics', value: data?.internalRFT?.departmentPerformance?.[3]?.pass || 156 }
+        ]
+      };
+    } else {
+      return {
+        title: 'Error Breakdown by Type',
+        data: data?.overview?.issueDistribution || [
+          { name: 'Documentation Error', value: 42 },
+          { name: 'Process Deviation', value: 28 },
+          { name: 'Equipment Issue', value: 15 },
+          { name: 'Material Issue', value: 11 }
+        ]
+      };
+    }
+  }, [data]);
   
   // Loading state
   if (isLoading && !data) {
@@ -369,7 +399,10 @@ const Dashboard = () => {
     <div className="dashboard-container">
       {/* Header with time range selector */}
       <div className="dashboard-header">
-        <h1>Manufacturing Dashboard</h1>
+        <div className="header-with-banner">
+          <div className="header-banner novo-gradient"></div>
+          <h1>Manufacturing Dashboard</h1>
+        </div>
         
         <div className="header-actions">
           <div className="time-range-controls">
@@ -385,7 +418,12 @@ const Dashboard = () => {
           </div>
           
           <button onClick={refreshData} className="refresh-button">
-            <RefreshCw size={16} />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                 stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 0 1-9 9c-2.52 0-4.93-1.06-6.7-2.82"></path>
+              <path d="M21 12a9 9 0 0 0-9-9c-2.52 0-4.93 1.06-6.7 2.82"></path>
+              <path d="m3 12 3-3 3 3"></path>
+            </svg>
             Refresh Data
           </button>
           
@@ -404,7 +442,21 @@ const Dashboard = () => {
           value={data?.overview?.totalRecords || 1245}
           previousValue={data?.overview?.totalRecords ? data.overview.totalRecords - 25 : 1220}
           trend="up"
+          trendData={[
+            { value: 1190 },
+            { value: 1205 },
+            { value: 1215 },
+            { value: 1220 },
+            { value: 1235 },
+            { value: data?.overview?.totalRecords || 1245 }
+          ]}
           showDetails={true}
+          detailMetrics={[
+            { label: 'Production', value: 458 },
+            { label: 'Quality', value: 326 },
+            { label: 'Packaging', value: 278 },
+            { label: 'Logistics', value: 183 }
+          ]}
         />
         
         <MetricCard
@@ -412,48 +464,147 @@ const Dashboard = () => {
           value={data?.overview?.totalLots || 78}
           previousValue={data?.overview?.totalLots ? data.overview.totalLots - 2 : 76}
           trend="up"
-          status="normal"
+          status={data?.overview?.totalLots > 80 ? 'warning' : 'normal'}
+          trendData={[
+            { value: 71 },
+            { value: 73 },
+            { value: 74 },
+            { value: 76 },
+            { value: 77 },
+            { value: data?.overview?.totalLots || 78 }
+          ]}
           showDetails={true}
+          detailMetrics={[
+            { label: 'Released', value: 65 },
+            { label: 'In Process', value: 13 }
+          ]}
         />
         
         <MetricCard
           title="Overall RFT Rate"
           value={data?.overview?.overallRFTRate || 92.3}
-          previousValue={90.8}
+          previousValue={data?.overview?.overallRFTRate ? data.overview.overallRFTRate - 1.5 : 90.8}
           trend="up"
           percentage={true}
+          status={
+            (data?.overview?.overallRFTRate || 92.3) >= 95 ? 'success' : 
+            (data?.overview?.overallRFTRate || 92.3) >= 90 ? 'normal' :
+            (data?.overview?.overallRFTRate || 92.3) >= 85 ? 'warning' : 'critical'
+          }
           goal={95}
           goalLabel="Target RFT"
+          trendData={[
+            { value: 88.5 },
+            { value: 89.2 },
+            { value: 90.1 },
+            { value: 90.8 },
+            { value: 91.5 },
+            { value: data?.overview?.overallRFTRate || 92.3 }
+          ]}
           showDetails={true}
+          detailMetrics={[
+            { label: 'Record Level', value: data?.overview?.overallRFTRate || 92.3 },
+            { label: 'Lot Level', value: data?.overview?.lotQuality?.percentage || 95.3 }
+          ]}
         />
         
         <MetricCard
           title="Avg. Cycle Time"
           value={data?.processMetrics?.totalCycleTime?.average || 21.8}
-          previousValue={24.1}
+          previousValue={data?.processMetrics?.totalCycleTime?.average ? data.processMetrics.totalCycleTime.average + 2.3 : 24.1}
           trend="down"
-          goal={18.0}
+          goal={data?.processMetrics?.totalCycleTime?.target || 18.0}
           goalLabel="Target Time"
+          status={
+            (data?.processMetrics?.totalCycleTime?.average || 21.8) <= 18 ? 'success' : 
+            (data?.processMetrics?.totalCycleTime?.average || 21.8) <= 22 ? 'normal' :
+            (data?.processMetrics?.totalCycleTime?.average || 21.8) <= 25 ? 'warning' : 'critical'
+          }
+          trendData={cycleTimeTrendData}
           showDetails={true}
+          detailMetrics={[
+            { label: 'Min Observed', value: data?.processMetrics?.totalCycleTime?.minimum || 16.2 },
+            { label: 'Max Observed', value: data?.processMetrics?.totalCycleTime?.maximum || 36.2 }
+          ]}
         />
       </div>
       
-      {/* Charts grid - shortened for space */}
+      {/* Charts grid */}
       <DashboardGrid>
         <DashboardGrid.Widget
           title="RFT Performance"
           size="medium"
-          onRefresh={handleRefresh}
+          onRefresh={() => handleRefresh('rft-performance')}
         >
-          <div>RFT Chart Content</div>
+          <AdvancedChart
+            title="Pass vs. Fail Distribution"
+            data={data?.overview?.rftPerformance || [
+              { name: 'Pass', value: 1149, percentage: 92.3 },
+              { name: 'Fail', value: 96, percentage: 7.7 }
+            ]}
+            type="pie"
+            xDataKey="name"
+            yDataKey="value"
+            onDrillDown={handleRftDrillDown}
+            height={300}
+          />
         </DashboardGrid.Widget>
         
         <DashboardGrid.Widget
           title="Issue Distribution"
           size="medium"
-          onRefresh={handleRefresh}
+          onRefresh={() => handleRefresh('issue-distribution')}
         >
-          <div>Issues Chart Content</div>
+          <AdvancedChart
+            title="Top Issues by Count"
+            data={data?.overview?.issueDistribution || [
+              { name: 'Documentation Error', value: 42 },
+              { name: 'Process Deviation', value: 28 },
+              { name: 'Equipment Issue', value: 15 },
+              { name: 'Material Issue', value: 11 }
+            ]}
+            type="bar"
+            xDataKey="name"
+            yDataKey="value"
+            height={300}
+            allowDownload={true}
+          />
+        </DashboardGrid.Widget>
+        
+        <DashboardGrid.Widget
+          title="Department Performance"
+          size="medium"
+          onRefresh={() => handleRefresh('dept-performance')}
+        >
+          <AdvancedChart
+            title="RFT Rate by Department"
+            data={deptPerformanceData}
+            type="bar"
+            xDataKey="name"
+            yDataKey="rftRate"
+            percentage={true}
+            comparisonValue={95}
+            comparisonLabel="Target RFT"
+            height={300}
+          />
+        </DashboardGrid.Widget>
+        
+        <DashboardGrid.Widget
+          title="Lot Quality"
+          size="medium"
+          onRefresh={() => handleRefresh('lot-quality')}
+        >
+          <AdvancedChart
+            title="Lot Level RFT"
+            data={[
+              { name: 'Pass', value: data?.overview?.lotQuality?.pass || 72 },
+              { name: 'Fail', value: data?.overview?.lotQuality?.fail || 6 }
+            ]}
+            type="donut"
+            xDataKey="name"
+            yDataKey="value"
+            height={300}
+          />
         </DashboardGrid.Widget>
       </DashboardGrid>
       
@@ -504,63 +655,75 @@ root.render(<App />);
 console.log('Creating MetricCard.js...');
 fs.writeFileSync(path.join(srcDir, 'MetricCard.js'), `
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, MoreHorizontal, X } from 'lucide-react';
 
 const MetricCard = ({
   title,
   value,
   previousValue,
-  trend = 'none',
+  trend = 'neutral',
   percentage = false,
-  currency = false,
-  status = 'normal',
-  goal = null,
+  goal,
   goalLabel = 'Target',
-  trendData = [],
+  status = 'normal',
   showDetails = false,
-  detailMetrics = []
+  detailMetrics = [],
+  trendData = []
 }) => {
-  const [showingDetails, setShowingDetails] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
   
-  // Calculate the change percentage
-  const calculateChange = () => {
-    if (!previousValue || previousValue === 0) return 0;
-    return ((value - previousValue) / Math.abs(previousValue)) * 100;
-  };
-  
-  const change = calculateChange();
-  
-  // Format the displayed value
   const formatValue = (val) => {
-    if (val === null || val === undefined) return '-';
-    
-    // For large numbers, use locale string (adds commas)
-    let formatted = typeof val === 'number' && val >= 1000 
-      ? val.toLocaleString() 
-      : val;
-    
-    // Format based on type
-    if (percentage) {
-      formatted = typeof val === 'number' ? val.toFixed(1) + '%' : val;
-    } else if (currency) {
-      formatted = typeof val === 'number' ? '$' + val.toLocaleString() : val;
-    } else if (typeof val === 'number' && !Number.isInteger(val)) {
-      formatted = val.toFixed(1);
-    }
-    
-    return formatted;
+    if (val === undefined || val === null) return '-';
+    if (percentage) return val.toFixed(1) + '%';
+    return val.toLocaleString();
   };
   
+  const calculateTrendPercentage = () => {
+    if (!previousValue || previousValue === 0) return 0;
+    const change = ((value - previousValue) / previousValue) * 100;
+    return change.toFixed(1);
+  };
+
+  const trendPercentage = calculateTrendPercentage();
+  const trendIcon = trend === 'up' ? '↑' : trend === 'down' ? '↓' : '–';
+  const trendClass = 
+    trend === 'up' ? 'text-green-500' : 
+    trend === 'down' ? 'text-red-500' : 
+    'text-gray-400';
+
+  const statusClass = 
+    status === 'success' ? 'border-l-4 border-green-500' : 
+    status === 'warning' ? 'border-l-4 border-yellow-500' : 
+    status === 'critical' ? 'border-l-4 border-red-500' : 
+    'border-l-4 border-transparent';
+
+  const toggleDetails = () => {
+    setShowDetailView(!showDetailView);
+  };
+
+  // Calculate goal percentage for progress bar
+  const goalPercentage = goal ? Math.min(100, (value / goal) * 100) : 0;
+  
+  // Calculate heights for mini chart bars
+  const maxTrendValue = trendData.length > 0 
+    ? Math.max(...trendData.map(item => item.value))
+    : 0;
+    
+  const getBarHeight = (val) => {
+    if (maxTrendValue === 0) return '0%';
+    return \`\${Math.max(10, (val / maxTrendValue) * 100)}%\`;
+  };
+
   return (
-    <div className="metric-card">
+    <div className={\`metric-card \${statusClass}\`}>
       <div className="metric-header">
         <h3 className="metric-title">{title}</h3>
         {showDetails && (
           <button 
-            className="details-button"
-            onClick={() => setShowingDetails(!showingDetails)}
+            className="details-button" 
+            onClick={toggleDetails}
+            aria-label="Toggle details"
           >
-            <MoreHorizontal size={16} />
+            {showDetailView ? '−' : '+'}
           </button>
         )}
       </div>
@@ -568,13 +731,64 @@ const MetricCard = ({
       <div className="metric-value-container">
         <div className="metric-value">{formatValue(value)}</div>
         
-        {trend !== 'none' && (
-          <div className="metric-trend">
-            {trend === 'up' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-            <span>{Math.abs(change).toFixed(1)}%</span>
+        {previousValue !== undefined && (
+          <div className={\`metric-trend \${trendClass}\`}>
+            <span>{trendIcon}</span>
+            <span>{Math.abs(trendPercentage)}%</span>
           </div>
         )}
       </div>
+      
+      {/* Progress toward goal */}
+      {goal && (
+        <div className="metric-goal">
+          <div className="goal-bar-container">
+            <div className="goal-bar-background">
+              <div 
+                className="goal-bar-progress"
+                style={{ width: \`\${goalPercentage}%\` }}
+              ></div>
+            </div>
+          </div>
+          <div className="goal-text">
+            <span>Current</span>
+            <span>{goalLabel}: {formatValue(goal)}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Mini chart */}
+      {trendData.length > 0 && (
+        <div className="metric-mini-chart">
+          {trendData.map((item, idx) => (
+            <div 
+              key={idx}
+              className="mini-chart-bar"
+              style={{ 
+                height: getBarHeight(item.value),
+                opacity: idx === trendData.length - 1 ? 1 : 0.6 + (idx * 0.1)
+              }}
+            ></div>
+          ))}
+        </div>
+      )}
+      
+      {/* Detail metrics */}
+      {showDetails && showDetailView && detailMetrics.length > 0 && (
+        <div className="metric-details">
+          <div className="details-header">
+            <h4>Details</h4>
+          </div>
+          <div className="details-content">
+            {detailMetrics.map((metric, idx) => (
+              <div key={idx} className="detail-item">
+                <span className="detail-label">{metric.label}</span>
+                <span className="detail-value">{formatValue(metric.value)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -585,26 +799,292 @@ export default MetricCard;
 // Create AdvancedChart.js (simplified)
 console.log('Creating AdvancedChart.js...');
 fs.writeFileSync(path.join(srcDir, 'AdvancedChart.js'), `
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 
 const AdvancedChart = ({
   title,
+  description,
   data = [],
-  type = 'bar',
+  type = 'bar', // 'bar', 'line', 'pie', 'donut', 'area'
   xDataKey,
   yDataKey,
-  height = 300
+  categories = [],
+  height = 300,
+  percentage = false,
+  comparisonValue,
+  comparisonLabel,
+  allowDownload = false,
+  onDrillDown = null,
 }) => {
+  const [drillDownData, setDrillDownData] = useState(null);
+  
+  // Function to handle drill-down click
+  const handleDataPointClick = useCallback((item, index) => {
+    if (!onDrillDown) return;
+    
+    const drillDownResult = onDrillDown(item, index);
+    if (drillDownResult) {
+      setDrillDownData(drillDownResult);
+    }
+  }, [onDrillDown]);
+  
+  // Function to go back from drill-down view
+  const handleBackClick = useCallback(() => {
+    setDrillDownData(null);
+  }, []);
+  
+  // Function to simulate chart download
+  const handleDownload = useCallback(() => {
+    alert('Chart download simulation: Would download a PNG image of this chart');
+  }, []);
+  
+  // Data formatting helper
+  const formatValue = (value) => {
+    if (percentage) {
+      return \`\${value.toFixed(1)}%\`;
+    }
+    return value.toLocaleString();
+  };
+  
+  // Render different chart types based on the type prop
+  const renderChart = () => {
+    // If we have drill-down data, show that instead
+    const chartData = drillDownData ? drillDownData.data : data;
+    const chartTitle = drillDownData ? drillDownData.title : title;
+    
+    // Determine which data to render based on chart type
+    switch (type) {
+      case 'pie':
+      case 'donut':
+        return (
+          <div className="chart-container">
+            <h4 className="chart-title">{chartTitle}</h4>
+            <div 
+              className="chart-content pie-chart" 
+              style={{ height: height, position: 'relative' }}
+            >
+              <div className="pie-segments">
+                {chartData.map((item, index) => {
+                  const value = typeof yDataKey === 'string' ? item[yDataKey] : item.value;
+                  const name = typeof xDataKey === 'string' ? item[xDataKey] : item.name;
+                  const percentage = 
+                    item.percentage || 
+                    (chartData.reduce((sum, d) => sum + (typeof yDataKey === 'string' ? d[yDataKey] : d.value), 0) > 0
+                      ? (value / chartData.reduce((sum, d) => sum + (typeof yDataKey === 'string' ? d[yDataKey] : d.value), 0)) * 100
+                      : 0);
+                  
+                  // For visual purposes, generate colors
+                  const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                  const color = colors[index % colors.length];
+                  
+                  // For donut chart, create a circle in the middle
+                  const isDonut = type === 'donut';
+                  
+                  return (
+                    <div 
+                      key={index}
+                      className="pie-segment-container"
+                      onClick={() => handleDataPointClick(item, index)}
+                      style={{ cursor: onDrillDown ? 'pointer' : 'default' }}
+                    >
+                      <div 
+                        className="pie-segment" 
+                        style={{ 
+                          backgroundColor: color,
+                          width: '80px',
+                          height: '80px',
+                          marginBottom: '10px',
+                          borderRadius: '5px'
+                        }}
+                      ></div>
+                      <div className="pie-label">
+                        <div>{name}</div>
+                        <div className="pie-value">
+                          {formatValue(value)} ({percentage.toFixed(1)}%)
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Placeholder pie visual */}
+              <div className="pie-visual" style={{ 
+                position: 'absolute', 
+                top: '10px', 
+                right: '10px',
+                width: '150px',
+                height: '150px',
+                borderRadius: '50%',
+                background: 'conic-gradient(#3b82f6 0% 55%, #ef4444 55% 75%, #10b981 75% 90%, #f59e0b 90% 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {type === 'donut' && (
+                  <div style={{
+                    width: '70px',
+                    height: '70px',
+                    borderRadius: '50%',
+                    background: 'white'
+                  }}></div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+        
+      case 'bar':
+        return (
+          <div className="chart-container">
+            <h4 className="chart-title">{chartTitle}</h4>
+            <div className="chart-content bar-chart" style={{ height }}>
+              {chartData.map((item, index) => {
+                const value = typeof yDataKey === 'string' ? item[yDataKey] : item.value;
+                const name = typeof xDataKey === 'string' ? item[xDataKey] : item.name;
+                
+                // Calculate bar height percentage
+                const maxValue = Math.max(...chartData.map(d => 
+                  typeof yDataKey === 'string' ? d[yDataKey] : d.value
+                ));
+                const barHeight = (value / maxValue) * 80; // 80% of container height max
+                
+                // For visual purposes, generate colors
+                const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                const color = colors[index % colors.length];
+                
+                return (
+                  <div 
+                    key={index}
+                    className="bar-item"
+                    onClick={() => handleDataPointClick(item, index)}
+                    style={{ cursor: onDrillDown ? 'pointer' : 'default' }}
+                  >
+                    <div className="bar-container">
+                      <div 
+                        className="bar" 
+                        style={{ 
+                          height: \`\${barHeight}%\`, 
+                          backgroundColor: color 
+                        }}
+                      >
+                        <span className="bar-value">{formatValue(value)}</span>
+                      </div>
+                      
+                      {comparisonValue && (
+                        <div 
+                          className="comparison-line"
+                          style={{ 
+                            position: 'absolute',
+                            width: '100%',
+                            height: '2px',
+                            backgroundColor: '#000',
+                            bottom: \`\${(comparisonValue / maxValue) * 80}%\`,
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className="bar-label">{name}</div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {comparisonValue && comparisonLabel && (
+              <div className="comparison-legend">
+                <span className="comparison-indicator"></span>
+                <span className="comparison-label">{comparisonLabel}: {formatValue(comparisonValue)}</span>
+              </div>
+            )}
+          </div>
+        );
+        
+      case 'line':
+        return (
+          <div className="chart-container">
+            <h4 className="chart-title">{chartTitle}</h4>
+            <div className="chart-content line-chart" style={{ height }}>
+              <div className="chart-placeholder">
+                <div className="line-chart-visual" style={{
+                  width: '100%',
+                  height: '200px',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-between'
+                }}>
+                  {/* Simplified visual line chart */}
+                  <svg width="100%" height="100%" viewBox="0 0 500 200" preserveAspectRatio="none">
+                    <path 
+                      d="M0,150 C50,120 100,180 150,100 C200,20 250,90 300,60 C350,30 400,50 500,10" 
+                      stroke="#3b82f6" 
+                      strokeWidth="3" 
+                      fill="none"
+                    />
+                    {comparisonValue && (
+                      <line 
+                        x1="0" 
+                        y1={200 - (comparisonValue / 100 * 200)} 
+                        x2="500" 
+                        y2={200 - (comparisonValue / 100 * 200)}
+                        stroke="#000" 
+                        strokeWidth="2" 
+                        strokeDasharray="5,5" 
+                      />
+                    )}
+                  </svg>
+                </div>
+                
+                <div className="line-chart-labels">
+                  {chartData.map((item, index) => (
+                    <div key={index} className="line-label">
+                      {typeof xDataKey === 'string' ? item[xDataKey] : item.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {comparisonValue && comparisonLabel && (
+              <div className="comparison-legend">
+                <span className="comparison-indicator"></span>
+                <span className="comparison-label">{comparisonLabel}: {formatValue(comparisonValue)}</span>
+              </div>
+            )}
+          </div>
+        );
+        
+      default:
+        return <div>Unsupported chart type: {type}</div>;
+    }
+  };
+
   return (
-    <div className="chart-container">
+    <div className="advanced-chart">
       <div className="chart-header">
-        <div className="chart-title">
-          <h3>{title}</h3>
-        </div>
+        {drillDownData && (
+          <button 
+            onClick={handleBackClick}
+            className="back-button"
+          >
+            ← Back
+          </button>
+        )}
+        
+        {description && (
+          <div className="chart-description">{description}</div>
+        )}
+        
+        {allowDownload && (
+          <button 
+            onClick={handleDownload}
+            className="download-button"
+          >
+            Download
+          </button>
+        )}
       </div>
-      <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p>Chart: {type} - {title}</p>
-      </div>
+      
+      {renderChart()}
     </div>
   );
 };
@@ -791,6 +1271,23 @@ body {
   color: #666;
 }
 
+.details-button {
+  background: none;
+  border: none;
+  color: #718096;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.details-button:hover {
+  background-color: #f7fafc;
+  color: #4a5568;
+}
+
 .metric-value-container {
   display: flex;
   align-items: flex-end;
@@ -810,7 +1307,104 @@ body {
   font-size: 12px;
   font-weight: 500;
   gap: 2px;
+}
+
+.text-green-500 {
   color: #10b981;
+}
+
+.text-red-500 {
+  color: #ef4444;
+}
+
+.text-gray-400 {
+  color: #9ca3af;
+}
+
+.metric-goal {
+  margin-top: 12px;
+}
+
+.goal-bar-container {
+  margin-bottom: 4px;
+}
+
+.goal-bar-background {
+  width: 100%;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.goal-bar-progress {
+  height: 100%;
+  background-color: #3b82f6;
+  transition: width 0.5s ease;
+}
+
+.goal-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.metric-mini-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 24px;
+  gap: 2px;
+  margin-top: 12px;
+}
+
+.mini-chart-bar {
+  flex-grow: 1;
+  background-color: #3b82f6;
+  opacity: 0.7;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+}
+
+.metric-details {
+  margin-top: 12px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.details-header h4 {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.details-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.detail-label {
+  color: #6b7280;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #1f2937;
 }
 
 /* Dashboard Grid */
@@ -819,6 +1413,18 @@ body {
   gap: 20px;
   margin-bottom: 30px;
   grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid.responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid.responsive {
+    grid-template-columns: 1fr;
+  }
 }
 
 .widget {
@@ -842,8 +1448,188 @@ body {
   color: #1e293b;
 }
 
+.refresh-widget-button {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.refresh-widget-button:hover {
+  background-color: #f1f5f9;
+  color: #334155;
+}
+
 .widget-content {
   padding: 16px;
+}
+
+/* Advanced Chart Styles */
+.advanced-chart {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #4b5563;
+  margin: 0 0 10px 0;
+}
+
+.chart-description {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.back-button, .download-button {
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.back-button:hover, .download-button:hover {
+  background-color: #f9fafb;
+  color: #4b5563;
+}
+
+/* Pie Chart Styles */
+.pie-chart {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pie-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-width: 60%;
+}
+
+.pie-segment-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+
+.pie-label {
+  font-size: 12px;
+  text-align: center;
+  color: #4b5563;
+}
+
+.pie-value {
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Bar Chart Styles */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding-top: 20px;
+  height: 250px;
+}
+
+.bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.bar-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 30px;
+  height: 80%;
+}
+
+.bar {
+  width: 100%;
+  background-color: #3b82f6;
+  border-radius: 3px 3px 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 20px;
+}
+
+.bar-value {
+  font-size: 10px;
+  font-weight: 500;
+  color: white;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
+.bar-label {
+  margin-top: 8px;
+  font-size: 12px;
+  text-align: center;
+  color: #4b5563;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparison-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.comparison-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+  background-color: #000;
+}
+
+/* Line Chart Styles */
+.line-chart {
+  position: relative;
+}
+
+.line-chart-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.line-label {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  flex: 1;
 }
 
 /* Loading and error states */
@@ -884,6 +1670,23 @@ body {
   color: #1a73e8;
   font-weight: 500;
   border-radius: 8px 8px 0 0;
+}
+
+/* Header banner/artwork */
+.header-with-banner {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-banner {
+  height: 6px;
+  width: 120px;
+  margin-bottom: 10px;
+  border-radius: 3px;
+}
+
+.novo-gradient {
+  background: linear-gradient(to right, #db0032, #0066a4);
 }
 `);
 
