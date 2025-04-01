@@ -199,26 +199,54 @@ fs.writeFileSync(indexHtmlFile, `<!DOCTYPE html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#1a73e8" />
-    <meta
-      name="description"
-      content="Manufacturing Dashboard - Performance Metrics"
-    />
+    <meta name="description" content="Manufacturing Dashboard - Performance Metrics" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Mfg Dashboard" />
+    <meta name="application-name" content="Manufacturing Dashboard" />
+    <meta name="msapplication-TileColor" content="#1a73e8" />
+    
     <title>Manufacturing Dashboard</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest" crossorigin="use-credentials">
+    
     <script>
+      // Register service worker if supported
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+
       // Set initial tab to Process Flow for testing
       window.location.hash = 'process-flow';
       
       // Add debug listeners for data loading
       window.addEventListener('DOMContentLoaded', function() {
         console.log('DOM loaded, checking for data directory');
+        
+        // Test if manifest is accessible
+        fetch('/site.webmanifest')
+          .then(response => {
+            console.log('Manifest fetch response:', response.status);
+            return response.json();
+          })
+          .catch(error => {
+            console.error('Error fetching manifest:', error);
+          });
         
         // Test if data file is accessible
         fetch('/data/complete-data.json')
@@ -245,39 +273,6 @@ fs.writeFileSync(indexHtmlFile, `<!DOCTYPE html>
   </body>
 </html>`);
 
-// Create site.webmanifest for PWA support
-console.log('Creating site.webmanifest...');
-const manifestContent = {
-  "name": "Manufacturing Dashboard",
-  "short_name": "Mfg Dashboard",
-  "description": "Manufacturing Performance Metrics Dashboard",
-  "start_url": "/",
-  "icons": [
-    {
-      "src": "/android-chrome-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/android-chrome-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "theme_color": "#1a73e8",
-  "background_color": "#ffffff",
-  "display": "standalone",
-  "orientation": "portrait",
-  "scope": "/"
-};
-
-// Create the webmanifest file in the public directory
-const manifestFile = path.join(publicDir, 'site.webmanifest');
-console.log('Writing webmanifest to:', manifestFile);
-fs.writeFileSync(manifestFile, JSON.stringify(manifestContent, null, 2));
-
 // Create placeholder icons if they don't exist
 const iconSizes = {
   'android-chrome-192x192.png': 192,
@@ -291,17 +286,58 @@ Object.entries(iconSizes).forEach(([filename, size]) => {
   const iconPath = path.join(publicDir, filename);
   if (!fs.existsSync(iconPath)) {
     console.log(`Creating placeholder icon: ${filename}`);
-    // Create a minimal SVG as placeholder
-    const svg = `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#1a73e8"/>
-      <text x="50%" y="50%" font-family="Arial" font-size="${size/4}" 
-            fill="white" text-anchor="middle" dy=".3em">
-        ${size}
-      </text>
-    </svg>`;
-    fs.writeFileSync(iconPath, svg);
+    // Create a minimal 1x1 pixel PNG as placeholder
+    const base64Icon = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const iconBuffer = Buffer.from(base64Icon, 'base64');
+    fs.writeFileSync(iconPath, iconBuffer);
   }
 });
+
+// Create site.webmanifest for PWA support
+console.log('Creating site.webmanifest...');
+const manifestContent = {
+  "name": "Manufacturing Dashboard",
+  "short_name": "Mfg Dashboard",
+  "description": "Manufacturing Performance Metrics Dashboard",
+  "id": "/",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a73e8",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Process Flow",
+      "url": "/process-flow",
+      "icons": [{ "src": "android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+};
+
+// Create the webmanifest file in the public directory
+const manifestFile = path.join(publicDir, 'site.webmanifest');
+console.log('Writing webmanifest to:', manifestFile);
+fs.writeFileSync(manifestFile, JSON.stringify(manifestContent, null, 2));
 
 // Create robots.txt
 console.log('Creating robots.txt...');
