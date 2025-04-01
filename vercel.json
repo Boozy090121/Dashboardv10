@@ -12,7 +12,7 @@
   ],
   "rewrites": [
     { "source": "/data/(.*)", "destination": "/data/$1" },
-    { "source": "/(.*\\.(json|svg|jpg|png|ico|woff|woff2|webmanifest|xml|txt))", "destination": "/$1" },
+    { "source": "/(.+\\.(json|svg|jpg|png|ico|woff|woff2|webmanifest|xml|txt))", "destination": "/$1" },
     { "source": "/debug", "destination": "/index.html" },
     { "source": "/dashboard", "destination": "/index.html" },
     { "source": "/process-flow", "destination": "/index.html" },
