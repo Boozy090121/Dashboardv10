@@ -18,6 +18,218 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
+// Create debug-index.js
+console.log('Creating debug-index.js...');
+fs.writeFileSync(path.join(__dirname, 'src', 'debug-index.js'), `
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import SimplifiedApp from './SimplifiedApp';
+import './index.css';
+import './enhanced-components.css';
+import './pci-enhanced-styles.css';
+import './tab-fix.css';
+
+console.log('debug-index.js loaded');
+
+// Initialize the application with React 18 syntax
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <SimplifiedApp />
+  </React.StrictMode>
+);
+
+// Add console message to notify that we're using the debug version
+console.log('%c DEBUG MODE ACTIVE ', 'background: #CC2030; color: white; font-size: 16px; padding: 4px 8px;');
+console.log('Using simplified app for debugging');
+
+// Add a reload button for testing
+setTimeout(() => {
+  const debugControls = document.createElement('div');
+  debugControls.style.position = 'fixed';
+  debugControls.style.bottom = '20px';
+  debugControls.style.right = '20px';
+  debugControls.style.zIndex = '9999';
+  debugControls.style.display = 'flex';
+  debugControls.style.gap = '10px';
+  
+  const reloadButton = document.createElement('button');
+  reloadButton.innerText = 'Reload';
+  reloadButton.style.backgroundColor = '#00518A';
+  reloadButton.style.color = 'white';
+  reloadButton.style.border = 'none';
+  reloadButton.style.padding = '8px 12px';
+  reloadButton.style.borderRadius = '4px';
+  reloadButton.style.cursor = 'pointer';
+  reloadButton.onclick = () => window.location.reload();
+  
+  const toggleConsoleButton = document.createElement('button');
+  toggleConsoleButton.innerText = 'Log State';
+  toggleConsoleButton.style.backgroundColor = '#CC2030';
+  toggleConsoleButton.style.color = 'white';
+  toggleConsoleButton.style.border = 'none';
+  toggleConsoleButton.style.padding = '8px 12px';
+  toggleConsoleButton.style.borderRadius = '4px';
+  toggleConsoleButton.style.cursor = 'pointer';
+  toggleConsoleButton.onclick = () => {
+    console.log('Current hash:', window.location.hash);
+    console.log('Active tab elements:', document.querySelectorAll('.tab-button.active').length);
+    console.log('Tab button elements:', document.querySelectorAll('.tab-button').length);
+  };
+  
+  debugControls.appendChild(reloadButton);
+  debugControls.appendChild(toggleConsoleButton);
+  document.body.appendChild(debugControls);
+}, 1000);
+`);
+
+// Create index.html with all necessary features
+console.log('Creating index.html with all features...');
+fs.writeFileSync(path.join(publicDir, 'index.html'), `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1a73e8" />
+    <meta
+      name="description"
+      content="Manufacturing Dashboard - Performance Metrics"
+    />
+    <title>Manufacturing Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <script>
+      // Set initial tab to Process Flow for testing
+      window.location.hash = 'process-flow';
+      
+      // Add debug listeners for data loading
+      window.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, checking for data directory');
+        
+        // Test if data file is accessible
+        fetch('/data/complete-data.json')
+          .then(response => {
+            console.log('Data fetch response:', response.status);
+            if (!response.ok) {
+              throw new Error('Failed to fetch data file: ' + response.status);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Data file loaded successfully, has process flow:', 
+                      Boolean(data?.commercialProcess?.processFlow));
+          })
+          .catch(error => {
+            console.error('Error fetching data file:', error);
+          });
+      });
+    </script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>`);
+
+// Create site.webmanifest for PWA support
+console.log('Creating site.webmanifest...');
+fs.writeFileSync(path.join(publicDir, 'site.webmanifest'), `{
+  "name": "Manufacturing Dashboard",
+  "short_name": "Mfg Dashboard",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#1a73e8",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}`);
+
+// Create robots.txt
+console.log('Creating robots.txt...');
+fs.writeFileSync(path.join(publicDir, 'robots.txt'), `User-agent: *
+Allow: /
+Disallow: /debug
+Disallow: /data/`);
+
+// Create sitemap.xml
+console.log('Creating sitemap.xml...');
+fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://your-domain.vercel.app/</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://your-domain.vercel.app/dashboard</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://your-domain.vercel.app/process-flow</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://your-domain.vercel.app/lot-analytics</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://your-domain.vercel.app/visualizations</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://your-domain.vercel.app/intelligence</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://your-domain.vercel.app/insights</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://your-domain.vercel.app/customer-comments</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>`);
+
+// Update package.json scripts
+console.log('Updating package.json scripts...');
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+packageJson.scripts = {
+  ...packageJson.scripts,
+  "debug": "node vercel-setup.js && REACT_APP_ENTRY_POINT=./src/debug-index.js react-scripts start",
+  "vercel-build": "npm run vercel-setup && CI=false DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build"
+};
+fs.writeFileSync(path.join(__dirname, 'package.json'), JSON.stringify(packageJson, null, 2));
+
 // Ensure index.html exists in public directory
 const indexHtmlFile = path.join(publicDir, 'index.html');
 if (!fs.existsSync(indexHtmlFile)) {
@@ -435,25 +647,312 @@ export const DataProvider = ({ children }) => {
 export default DataContext;
 `);
 
+// Create StorageProvider.js
+console.log('Creating StorageProvider.js...');
+fs.writeFileSync(path.join(srcDir, 'StorageProvider.js'), `
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+// Create context for storage availability
+const StorageContext = createContext(null);
+
+// Hook to use storage context
+export const useStorageContext = () => {
+  const context = useContext(StorageContext);
+  if (!context) {
+    throw new Error('useStorageContext must be used within a StorageProvider');
+  }
+  return context;
+};
+
+export const StorageProvider = ({ children }) => {
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Check if localStorage is available on mount
+  useEffect(() => {
+    try {
+      // Try to access localStorage
+      const testKey = 'storage-test';
+      localStorage.setItem(testKey, 'test');
+      localStorage.removeItem(testKey);
+      
+      setIsAvailable(true);
+      setError(null);
+    } catch (err) {
+      console.error('localStorage is not available:', err);
+      setIsAvailable(false);
+      setError(\`Storage not available: \${err.message || 'Unknown error'}\`);
+    }
+  }, []);
+  
+  // Safely get item from localStorage
+  const getItem = (key, defaultValue = null) => {
+    if (!isAvailable) return defaultValue;
+    
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : defaultValue;
+    } catch (err) {
+      console.error(\`Error getting item \${key} from localStorage:\`, err);
+      return defaultValue;
+    }
+  };
+  
+  // Safely set item in localStorage
+  const setItem = (key, value) => {
+    if (!isAvailable) return false;
+    
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (err) {
+      console.error(\`Error setting item \${key} in localStorage:\`, err);
+      return false;
+    }
+  };
+  
+  // Safely remove item from localStorage
+  const removeItem = (key) => {
+    if (!isAvailable) return false;
+    
+    try {
+      localStorage.removeItem(key);
+      return true;
+    } catch (err) {
+      console.error(\`Error removing item \${key} from localStorage:\`, err);
+      return false;
+    }
+  };
+  
+  // Clear all items from localStorage
+  const clear = () => {
+    if (!isAvailable) return false;
+    
+    try {
+      localStorage.clear();
+      return true;
+    } catch (err) {
+      console.error('Error clearing localStorage:', err);
+      return false;
+    }
+  };
+  
+  // Get total storage usage
+  const getStorageUsage = () => {
+    if (!isAvailable) return { used: 0, total: 0, percentage: 0 };
+    
+    try {
+      let totalSize = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        totalSize += (key.length + value.length) * 2; // UTF-16 uses 2 bytes per character
+      }
+      
+      // Assume 5MB limit (common in browsers)
+      const totalLimit = 5 * 1024 * 1024;
+      const usagePercentage = (totalSize / totalLimit) * 100;
+      
+      return {
+        used: totalSize,
+        total: totalLimit,
+        percentage: usagePercentage
+      };
+    } catch (err) {
+      console.error('Error calculating storage usage:', err);
+      return { used: 0, total: 0, percentage: 0 };
+    }
+  };
+  
+  return (
+    <StorageContext.Provider value={{
+      isAvailable,
+      error,
+      getItem,
+      setItem,
+      removeItem,
+      clear,
+      getStorageUsage
+    }}>
+      {children}
+      
+      {/* Display warning if storage is not available */}
+      {!isAvailable && (
+        <div className="storage-warning">
+          <div className="storage-warning-content">
+            <div className="warning-icon">⚠️</div>
+            <div className="warning-message">
+              <strong>Warning:</strong> Local storage is not available. Your settings and preferences will not be saved.
+              <p className="warning-details">{error}</p>
+            </div>
+            <button className="close-warning" onClick={() => {
+              const warning = document.querySelector('.storage-warning');
+              if (warning) warning.style.display = 'none';
+            }}>×</button>
+          </div>
+        </div>
+      )}
+    </StorageContext.Provider>
+  );
+};
+
+export default StorageContext;
+`);
+
+// Create TimeFilterContext.js
+console.log('Creating TimeFilterContext.js...');
+fs.writeFileSync(path.join(srcDir, 'TimeFilterContext.js'), `
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useStorageContext } from './StorageProvider';
+
+// Create context for time filtering
+const TimeFilterContext = createContext(null);
+
+// Custom hook for components to access the time filter context
+export const useTimeFilterContext = () => {
+  const context = useContext(TimeFilterContext);
+  if (!context) {
+    throw new Error('useTimeFilterContext must be used within a TimeFilterProvider');
+  }
+  return context;
+};
+
+export const TimeFilterProvider = ({ children }) => {
+  const { getItem, setItem } = useStorageContext();
+  
+  // Initialize time range from localStorage or default to 6m
+  const [timeRange, setTimeRange] = useState(() => {
+    return getItem('time-filter-range', '6m'); // Default to 6 months
+  });
+  
+  // Initialize custom date range if saved
+  const [customDateRange, setCustomDateRange] = useState(() => {
+    return getItem('time-filter-custom-range', {
+      start: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 180 days ago
+      end: new Date().toISOString().split('T')[0] // Today
+    });
+  });
+  
+  // Save time range to localStorage when it changes
+  useEffect(() => {
+    setItem('time-filter-range', timeRange);
+  }, [timeRange, setItem]);
+  
+  // Save custom date range to localStorage when it changes
+  useEffect(() => {
+    setItem('time-filter-custom-range', customDateRange);
+  }, [customDateRange, setItem]);
+  
+  // Get date range based on selected timeRange
+  const getDateRange = useCallback(() => {
+    const today = new Date();
+    let startDate;
+    
+    switch (timeRange) {
+      case '1m':
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() - 1);
+        break;
+      case '3m':
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() - 3);
+        break;
+      case '6m':
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() - 6);
+        break;
+      case '12m':
+        startDate = new Date(today);
+        startDate.setFullYear(today.getFullYear() - 1);
+        break;
+      case 'ytd':
+        startDate = new Date(today.getFullYear(), 0, 1); // January 1st of current year
+        break;
+      case 'custom':
+        return {
+          start: new Date(customDateRange.start),
+          end: new Date(customDateRange.end)
+        };
+      default:
+        startDate = new Date(today);
+        startDate.setMonth(today.getMonth() - 6);
+    }
+    
+    return {
+      start: startDate,
+      end: today
+    };
+  }, [timeRange, customDateRange]);
+  
+  // Format a date range for display
+  const formatDateRange = useCallback(() => {
+    const { start, end } = getDateRange();
+    
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    };
+    
+    return \`\${formatDate(start)} - \${formatDate(end)}\`;
+  }, [getDateRange]);
+  
+  return (
+    <TimeFilterContext.Provider value={{
+      timeRange,
+      setTimeRange,
+      customDateRange,
+      setCustomDateRange,
+      getDateRange,
+      formatDateRange
+    }}>
+      {children}
+    </TimeFilterContext.Provider>
+  );
+};
+
+export default TimeFilterContext;
+`);
+
 // Create App.js with proper routing and DEBUG logging
 console.log('Creating App.js with enhanced routing...');
 fs.writeFileSync(path.join(srcDir, 'App.js'), `
 import React, { useState, useEffect } from 'react';
 import { DataProvider } from './DataContext';
 import { TimeFilterProvider } from './TimeFilterContext';
+import { StorageProvider } from './StorageProvider';
 import Dashboard from './Dashboard';
 import ProcessAnalysis from './ProcessAnalysis';
 import IntelligenceEngine from './IntelligenceEngine';
 import LotCorrelationTracker from './LotCorrelationTracker';
 import EnhancedVisualizations from './EnhancedVisualizations';
 import HistoricalAnalysis from './HistoricalAnalysis';
+import CustomerCommentAnalysis from './CustomerCommentAnalysis';
+import Widgets from './Widgets';
+import UserSettings from './UserSettings';
 
 /**
  * Main application component with tab navigation
  */
 const App = () => {
-  // Always start with Dashboard tab selected by default
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Check URL for initial tab selection
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check URL hash for #process-flow or other tab indicators
+    const hash = window.location.hash.replace('#', '');
+    console.log('URL hash:', hash);
+    
+    // If hash matches a valid tab, use that
+    if (['dashboard', 'intelligence', 'process-flow', 'lot-analytics', 
+         'visualizations', 'historical', 'customer-comments', 'widgets', 'settings'].includes(hash)) {
+      console.log('Setting initial tab from URL:', hash);
+      return hash;
+    }
+    
+    // Default to dashboard if no valid hash
+    return 'dashboard';
+  });
   
   // Update URL when tab changes
   useEffect(() => {
@@ -503,7 +1002,7 @@ const App = () => {
     { 
       id: 'customer-comments', 
       label: 'Customer Comments',
-      component: () => <div className="placeholder-tab card"><div className="placeholder-content">Customer Comment Analysis Dashboard</div></div>,
+      component: CustomerCommentAnalysis,
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -530,6 +1029,30 @@ const App = () => {
           <circle cx="12" cy="12" r="10"></circle>
         </svg>
       )
+    },
+    { 
+      id: 'widgets', 
+      label: 'Widgets',
+      component: Widgets,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="4" width="6" height="6"></rect>
+          <rect x="14" y="4" width="6" height="6"></rect>
+          <rect x="4" y="14" width="6" height="6"></rect>
+          <rect x="14" y="14" width="6" height="6"></rect>
+        </svg>
+      )
+    },
+    { 
+      id: 'settings', 
+      label: 'Settings',
+      component: UserSettings,
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      )
     }
   ];
 
@@ -538,26 +1061,28 @@ const App = () => {
   console.log('Rendering component for tab:', activeTab, 'Component:', ActiveComponent?.name || 'Unknown');
   
   return (
-    <DataProvider>
-      <TimeFilterProvider>
-        <div className="app-container">
-          <div className="tabs-container">
-            {tabs.map(tab => (
-              <button 
-                key={tab.id}
-                className={\`tab-button \${activeTab === tab.id ? 'active' : ''}\`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.icon}
-                <span className="tab-label">{tab.label}</span>
-              </button>
-            ))}
+    <StorageProvider>
+      <DataProvider>
+        <TimeFilterProvider>
+          <div className="app-container">
+            <div className="tabs-container">
+              {tabs.map(tab => (
+                <button 
+                  key={tab.id}
+                  className={\`tab-button \${activeTab === tab.id ? 'active' : ''}\`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.icon}
+                  <span className="tab-label">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+            
+            <ActiveComponent />
           </div>
-          
-          <ActiveComponent />
-        </div>
-      </TimeFilterProvider>
-    </DataProvider>
+        </TimeFilterProvider>
+      </DataProvider>
+    </StorageProvider>
   );
 };
 
@@ -837,6 +1362,1167 @@ const ProcessAnalysis = () => {
 };
 
 export default ProcessAnalysis;
+`);
+
+// Create CustomerCommentAnalysis.js
+console.log('Creating CustomerCommentAnalysis.js...');
+fs.writeFileSync(path.join(srcDir, 'CustomerCommentAnalysis.js'), `import React, { useState, useMemo, useEffect } from 'react';
+import { useDataContext } from './DataContext';
+
+const CustomerCommentAnalysis = () => {
+  const { data, isLoading, error, refreshData } = useDataContext();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sentimentFilter, setSentimentFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [expandedComment, setExpandedComment] = useState(null);
+  
+  // Process customer comment data
+  const commentData = useMemo(() => {
+    if (!data || !data.customerComments) {
+      // Default data if customer comments not available
+      return [
+        {
+          id: 1,
+          customer: 'Acme Pharmaceuticals',
+          date: '2025-05-15',
+          category: 'quality',
+          content: 'We noticed inconsistencies in the documentation provided with batch PX-45892. Some sections were missing required information about testing parameters.',
+          sentiment: 'negative',
+          priority: 'high',
+          status: 'open',
+          keywords: ['documentation', 'inconsistent', 'missing', 'testing parameters'],
+          responseTime: null
+        },
+        {
+          id: 2,
+          customer: 'BioTech Solutions',
+          date: '2025-05-12',
+          category: 'delivery',
+          content: 'The latest shipment arrived two days ahead of schedule, which helped us meet our production timeline. Great work on the expedited delivery!',
+          sentiment: 'positive',
+          priority: 'medium',
+          status: 'closed',
+          keywords: ['delivery', 'ahead of schedule', 'expedited'],
+          responseTime: '2h 15m'
+        },
+        {
+          id: 3,
+          customer: 'MedCore Devices',
+          date: '2025-05-10',
+          category: 'product',
+          content: 'The latest batch meets all specifications and has shown excellent performance in our initial testing. Quality is consistent with previous deliveries.',
+          sentiment: 'positive',
+          priority: 'low',
+          status: 'closed',
+          keywords: ['quality', 'specifications', 'consistent', 'performance'],
+          responseTime: '4h 30m'
+        },
+        {
+          id: 4,
+          customer: 'Global Health Products',
+          date: '2025-05-08',
+          category: 'service',
+          content: 'Your technical support team was extremely helpful in resolving our questions about the validation process. Response was prompt and comprehensive.',
+          sentiment: 'positive',
+          priority: 'medium',
+          status: 'closed',
+          keywords: ['support', 'validation', 'responsive', 'helpful'],
+          responseTime: '1h 10m'
+        },
+        {
+          id: 5,
+          customer: 'Pharma Innovations',
+          date: '2025-05-05',
+          category: 'quality',
+          content: 'We identified several deviations in the latest batch that required additional testing on our end. This caused delays in our production schedule.',
+          sentiment: 'negative',
+          priority: 'high',
+          status: 'in-progress',
+          keywords: ['deviations', 'additional testing', 'delays'],
+          responseTime: '5h 45m'
+        }
+      ];
+    }
+    
+    return data.customerComments;
+  }, [data]);
+  
+  // Filter and sort the comments
+  const filteredComments = useMemo(() => {
+    return commentData
+      .filter(comment => {
+        // Category filter
+        if (selectedCategory !== 'all' && comment.category !== selectedCategory) {
+          return false;
+        }
+        
+        // Search term filter
+        if (searchTerm && !comment.content.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            !comment.customer.toLowerCase().includes(searchTerm.toLowerCase())) {
+          return false;
+        }
+        
+        // Sentiment filter
+        if (sentimentFilter !== 'all' && comment.sentiment !== sentimentFilter) {
+          return false;
+        }
+        
+        return true;
+      })
+      .sort((a, b) => {
+        // Sort logic
+        if (sortBy === 'date') {
+          return sortOrder === 'asc' 
+            ? new Date(a.date) - new Date(b.date)
+            : new Date(b.date) - new Date(a.date);
+        } else if (sortBy === 'priority') {
+          const priorityValues = { 'low': 1, 'medium': 2, 'high': 3 };
+          return sortOrder === 'asc'
+            ? priorityValues[a.priority] - priorityValues[b.priority]
+            : priorityValues[b.priority] - priorityValues[a.priority];
+        } else if (sortBy === 'sentiment') {
+          const sentimentValues = { 'negative': 1, 'neutral': 2, 'positive': 3 };
+          return sortOrder === 'asc'
+            ? sentimentValues[a.sentiment] - sentimentValues[b.sentiment]
+            : sentimentValues[b.sentiment] - sentimentValues[a.sentiment];
+        }
+        return 0;
+      });
+  }, [commentData, selectedCategory, searchTerm, sentimentFilter, sortBy, sortOrder]);
+  
+  // Calculate metrics
+  const metrics = useMemo(() => {
+    const total = commentData.length;
+    const positive = commentData.filter(c => c.sentiment === 'positive').length;
+    const negative = commentData.filter(c => c.sentiment === 'negative').length;
+    const open = commentData.filter(c => c.status === 'open').length;
+    const inProgress = commentData.filter(c => c.status === 'in-progress').length;
+    const closed = commentData.filter(c => c.status === 'closed').length;
+    const highPriority = commentData.filter(c => c.priority === 'high').length;
+    
+    // Calculate average response time (for comments that have response time)
+    const commentsWithResponse = commentData.filter(c => c.responseTime);
+    let avgResponseTime = 'N/A';
+    
+    if (commentsWithResponse.length > 0) {
+      // Convert response times to minutes
+      const responseTimes = commentsWithResponse.map(c => {
+        const match = c.responseTime.match(/(\d+)h\\s+(\d+)m/);
+        if (match) {
+          const hours = parseInt(match[1], 10);
+          const minutes = parseInt(match[2], 10);
+          return hours * 60 + minutes;
+        }
+        return 0;
+      });
+      
+      // Calculate average in minutes
+      const totalMinutes = responseTimes.reduce((sum, time) => sum + time, 0);
+      const avgMinutes = Math.round(totalMinutes / responseTimes.length);
+      
+      // Convert back to hours and minutes
+      const hours = Math.floor(avgMinutes / 60);
+      const minutes = avgMinutes % 60;
+      avgResponseTime = \`\${hours}h \${minutes}m\`;
+    }
+    
+    return {
+      total,
+      positive,
+      negative,
+      neutral: total - positive - negative,
+      positivePercentage: total > 0 ? Math.round((positive / total) * 100) : 0,
+      negativePercentage: total > 0 ? Math.round((negative / total) * 100) : 0,
+      open,
+      inProgress,
+      closed,
+      highPriority,
+      avgResponseTime
+    };
+  }, [commentData]);
+  
+  // Categories for filtering
+  const categories = [
+    { id: 'all', label: 'All Categories' },
+    { id: 'quality', label: 'Quality' },
+    { id: 'delivery', label: 'Delivery' },
+    { id: 'product', label: 'Product' },
+    { id: 'service', label: 'Service' },
+    { id: 'documentation', label: 'Documentation' }
+  ];
+  
+  // Toggle comment expansion
+  const toggleCommentExpansion = (commentId) => {
+    setExpandedComment(expandedComment === commentId ? null : commentId);
+  };
+  
+  // Handle sort change
+  const handleSortChange = (field) => {
+    if (sortBy === field) {
+      // Toggle sort order if clicking the same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new sort field and default to descending
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+  
+  // Loading state
+  if (isLoading && !data) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading customer comment data...</p>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error && !data) {
+    return (
+      <div className="error-container">
+        <div className="error-icon">⚠️</div>
+        <h3>Error Loading Data</h3>
+        <p>{error}</p>
+        <button onClick={refreshData} className="refresh-button">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="customer-comment-analysis">
+      <div className="comment-analysis-header">
+        <h1>Customer Comment Analysis</h1>
+        <div className="comment-metrics-container">
+          <div className="comment-metric">
+            <div className="metric-value">{metrics.total}</div>
+            <div className="metric-label">Total Comments</div>
+          </div>
+          <div className="comment-metric positive">
+            <div className="metric-value">{metrics.positivePercentage}%</div>
+            <div className="metric-label">Positive</div>
+          </div>
+          <div className="comment-metric negative">
+            <div className="metric-value">{metrics.negativePercentage}%</div>
+            <div className="metric-label">Negative</div>
+          </div>
+          <div className="comment-metric">
+            <div className="metric-value">{metrics.open}</div>
+            <div className="metric-label">Open</div>
+          </div>
+          <div className="comment-metric">
+            <div className="metric-value">{metrics.avgResponseTime}</div>
+            <div className="metric-label">Avg Response</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="comments-filter-container">
+        <div className="filter-group">
+          <div className="category-filter">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                className={\`category-button \${selectedCategory === category.id ? 'active' : ''}\`}
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="filter-group">
+          <div className="search-filter">
+            <input
+              type="text"
+              placeholder="Search comments..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          
+          <div className="sentiment-filter">
+            <select 
+              value={sentimentFilter} 
+              onChange={(e) => setSentimentFilter(e.target.value)}
+              className="sentiment-select"
+            >
+              <option value="all">All Sentiments</option>
+              <option value="positive">Positive</option>
+              <option value="neutral">Neutral</option>
+              <option value="negative">Negative</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div className="comments-list-container">
+        <div className="comments-list-header">
+          <div className="column-header date" onClick={() => handleSortChange('date')}>
+            Date
+            {sortBy === 'date' && (
+              <span className="sort-indicator">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+            )}
+          </div>
+          <div className="column-header customer">Customer</div>
+          <div className="column-header content">Comment</div>
+          <div className="column-header priority" onClick={() => handleSortChange('priority')}>
+            Priority
+            {sortBy === 'priority' && (
+              <span className="sort-indicator">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+            )}
+          </div>
+          <div className="column-header sentiment" onClick={() => handleSortChange('sentiment')}>
+            Sentiment
+            {sortBy === 'sentiment' && (
+              <span className="sort-indicator">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+            )}
+          </div>
+          <div className="column-header status">Status</div>
+        </div>
+        
+        <div className="comments-list">
+          {filteredComments.length > 0 ? (
+            filteredComments.map(comment => (
+              <div 
+                key={comment.id} 
+                className={\`comment-item \${expandedComment === comment.id ? 'expanded' : ''}\`}
+                onClick={() => toggleCommentExpansion(comment.id)}
+              >
+                <div className="comment-summary">
+                  <div className="comment-date">
+                    {new Date(comment.date).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      year: 'numeric'
+                    })}
+                  </div>
+                  <div className="comment-customer">{comment.customer}</div>
+                  <div className="comment-content">
+                    {comment.content.length > 60 
+                      ? \`\${comment.content.substring(0, 60)}...\` 
+                      : comment.content}
+                  </div>
+                  <div className={\`comment-priority \${comment.priority}\`}>
+                    {comment.priority.charAt(0).toUpperCase() + comment.priority.slice(1)}
+                  </div>
+                  <div className={\`comment-sentiment \${comment.sentiment}\`}>
+                    {comment.sentiment === 'positive' && '👍'}
+                    {comment.sentiment === 'neutral' && '😐'}
+                    {comment.sentiment === 'negative' && '👎'}
+                    {comment.sentiment.charAt(0).toUpperCase() + comment.sentiment.slice(1)}
+                  </div>
+                  <div className={\`comment-status \${comment.status}\`}>
+                    {comment.status.charAt(0).toUpperCase() + comment.status.slice(1).replace('-', ' ')}
+                  </div>
+                </div>
+                
+                {expandedComment === comment.id && (
+                  <div className="comment-details">
+                    <div className="comment-full-content">
+                      <h4>Full Comment</h4>
+                      <p>{comment.content}</p>
+                    </div>
+                    
+                    <div className="comment-metadata">
+                      <div className="metadata-section">
+                        <h4>Response Time</h4>
+                        <p>{comment.responseTime || 'Not yet responded'}</p>
+                      </div>
+                      
+                      <div className="metadata-section">
+                        <h4>Keywords</h4>
+                        <div className="keywords-list">
+                          {comment.keywords.map((keyword, index) => (
+                            <span key={index} className="keyword-tag">{keyword}</span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="metadata-section">
+                        <h4>Category</h4>
+                        <p>{comment.category.charAt(0).toUpperCase() + comment.category.slice(1)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="comment-actions">
+                      <button className="action-button">Mark as Resolved</button>
+                      <button className="action-button">Assign</button>
+                      <button className="action-button">Add Response</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="no-comments-message">
+              No comments match your current filters. Try adjusting your search criteria.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CustomerCommentAnalysis;
+`);
+
+// Create Widgets.js
+console.log('Creating Widgets.js...');
+fs.writeFileSync(path.join(srcDir, 'Widgets.js'), `
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDataContext } from './DataContext';
+import { useTimeFilterContext } from './TimeFilterContext';
+import { useStorageContext } from './StorageProvider';
+import AdvancedChart from './AdvancedChart';
+import MetricCard from './MetricCard';
+
+const Widgets = () => {
+  const { data, isLoading, error, refreshData } = useDataContext();
+  const { timeRange } = useTimeFilterContext();
+  const { getItem, setItem, isAvailable } = useStorageContext();
+  
+  const [widgets, setWidgets] = useState(() => {
+    // Use the storage context to get the widgets
+    return getItem('dashboard-widgets', defaultWidgets);
+  });
+  const [availableWidgets, setAvailableWidgets] = useState(widgetCatalog);
+  const [editMode, setEditMode] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedWidget, setDraggedWidget] = useState(null);
+  
+  // Save widgets to localStorage when they change
+  useEffect(() => {
+    // Use the storage context to set the widgets
+    setItem('dashboard-widgets', widgets);
+  }, [widgets, setItem]);
+  
+  // Add a widget to the dashboard
+  const addWidget = useCallback((widgetType) => {
+    const widgetToAdd = availableWidgets.find(w => w.type === widgetType);
+    if (!widgetToAdd) return;
+    
+    const newWidget = {
+      id: \`widget-\${Date.now()}-\${Math.floor(Math.random() * 1000)}\`,
+      ...widgetToAdd,
+      position: {
+        x: 0,
+        y: widgets.length > 0 ? Math.max(...widgets.map(w => w.position.y)) + 1 : 0
+      }
+    };
+    
+    setWidgets(prev => [...prev, newWidget]);
+  }, [widgets, availableWidgets]);
+  
+  // Remove a widget from the dashboard
+  const removeWidget = useCallback((widgetId) => {
+    setWidgets(prev => prev.filter(w => w.id !== widgetId));
+  }, []);
+  
+  // Handle widget drag start
+  const handleDragStart = useCallback((e, widget) => {
+    setIsDragging(true);
+    setDraggedWidget(widget);
+    
+    // Add visual feedback for dragging
+    if (e.target.classList.contains('widget-header')) {
+      e.target.parentNode.classList.add('dragging');
+    } else {
+      e.target.classList.add('dragging');
+    }
+  }, []);
+  
+  // Handle widget drag end
+  const handleDragEnd = useCallback((e) => {
+    setIsDragging(false);
+    setDraggedWidget(null);
+    
+    // Remove dragging class from all elements
+    document.querySelectorAll('.dragging').forEach(el => {
+      el.classList.remove('dragging');
+    });
+  }, []);
+  
+  // Handle widget drop for reordering
+  const handleDragOver = useCallback((e, targetWidget) => {
+    e.preventDefault();
+    if (!isDragging || !draggedWidget || draggedWidget.id === targetWidget.id) return;
+    
+    // Reorder widgets
+    setWidgets(prev => {
+      const updatedWidgets = [...prev];
+      const draggedIndex = updatedWidgets.findIndex(w => w.id === draggedWidget.id);
+      const targetIndex = updatedWidgets.findIndex(w => w.id === targetWidget.id);
+      
+      // Swap positions
+      const tempPos = { ...updatedWidgets[draggedIndex].position };
+      updatedWidgets[draggedIndex].position = { ...updatedWidgets[targetIndex].position };
+      updatedWidgets[targetIndex].position = tempPos;
+      
+      return updatedWidgets;
+    });
+  }, [isDragging, draggedWidget]);
+  
+  // Toggle widget edit mode
+  const toggleEditMode = useCallback(() => {
+    setEditMode(prev => !prev);
+  }, []);
+  
+  // Loading state
+  if (isLoading && !data) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading widget data...</p>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error && !data) {
+    return (
+      <div className="error-container">
+        <div className="error-icon">⚠️</div>
+        <h3>Error Loading Data</h3>
+        <p>{error}</p>
+        <button onClick={refreshData} className="refresh-button">
+          Try Again
+        </button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="widgets-container">
+      <div className="widgets-header">
+        <h1>Custom Dashboard Widgets</h1>
+        <div className="widgets-actions">
+          <button 
+            className={\`edit-button \${editMode ? 'active' : ''}\`} 
+            onClick={toggleEditMode}
+          >
+            {editMode ? 'Done Editing' : 'Edit Dashboard'}
+          </button>
+          {editMode && (
+            <div className="widget-catalog-dropdown">
+              <button className="add-widget-button">Add Widget</button>
+              <div className="dropdown-content">
+                {availableWidgets.map(widget => (
+                  <div 
+                    key={widget.type} 
+                    className="dropdown-item"
+                    onClick={() => addWidget(widget.type)}
+                  >
+                    {widget.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {widgets.length === 0 ? (
+        <div className="empty-widgets">
+          <h3>No widgets added yet!</h3>
+          <p>Click "Edit Dashboard" and then "Add Widget" to get started.</p>
+        </div>
+      ) : (
+        <div className="widgets-grid">
+          {widgets.sort((a, b) => 
+            a.position.y === b.position.y 
+              ? a.position.x - b.position.x 
+              : a.position.y - b.position.y
+          ).map(widget => (
+            <div 
+              key={widget.id}
+              className={\`widget-container \${widget.size || 'medium'} \${editMode ? 'editable' : ''}\`}
+              draggable={editMode}
+              onDragStart={(e) => handleDragStart(e, widget)}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => handleDragOver(e, widget)}
+            >
+              <div className="widget-header">
+                <h3>{widget.name}</h3>
+                {editMode && (
+                  <button 
+                    className="remove-widget" 
+                    onClick={() => removeWidget(widget.id)}
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+              <div className="widget-content">
+                {renderWidgetContent(widget, data, timeRange)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Helper function to render the appropriate widget content based on type
+const renderWidgetContent = (widget, data, timeRange) => {
+  if (!data) return <div className="widget-placeholder">No data available</div>;
+  
+  switch (widget.type) {
+    case 'metric-card':
+      return (
+        <MetricCard
+          title={widget.name}
+          value={getDataFromPath(data, widget.dataPath)?.value || 0}
+          previousValue={getDataFromPath(data, widget.dataPath)?.previousValue}
+          trend={getDataFromPath(data, widget.dataPath)?.trend || 'stable'}
+          percentage={widget.isPercentage}
+          showDetails={false}
+        />
+      );
+      
+    case 'rft-chart':
+      return (
+        <AdvancedChart
+          title="RFT Rate Trend"
+          data={data?.overview?.processTimeline || []}
+          type="line"
+          xDataKey="month"
+          yDataKey="recordRFT"
+          percentage={true}
+          comparisonValue={95}
+          comparisonLabel="Target"
+          height={200}
+        />
+      );
+      
+    case 'cycle-time-chart':
+      return (
+        <AdvancedChart
+          title="Cycle Time Trend"
+          data={data?.processMetrics?.cycleTimesByMonth || []}
+          type="line"
+          xDataKey="month"
+          yDataKey="averageCycleTime"
+          height={200}
+        />
+      );
+      
+    case 'issue-distribution':
+      return (
+        <AdvancedChart
+          title="Issue Distribution"
+          data={data?.overview?.issueDistribution || []}
+          type="pie"
+          xDataKey="name"
+          yDataKey="value"
+          height={200}
+        />
+      );
+      
+    case 'dept-performance':
+      return (
+        <AdvancedChart
+          title="Department Performance"
+          data={data?.internalRFT?.departmentPerformance || []}
+          type="bar"
+          xDataKey="department"
+          yDataKey="rftRate"
+          percentage={true}
+          height={200}
+        />
+      );
+      
+    default:
+      return <div className="widget-placeholder">Unknown widget type</div>;
+  }
+};
+
+// Helper to safely get nested data using a path string like "overview.totalRecords"
+const getDataFromPath = (data, path) => {
+  if (!data || !path) return null;
+  
+  try {
+    return path.split('.').reduce((obj, key) => obj[key], data);
+  } catch (error) {
+    console.warn(\`Error accessing data path: \${path}\`, error);
+    return null;
+  }
+};
+
+// Default widgets for new users
+const defaultWidgets = [
+  {
+    id: 'default-1',
+    type: 'metric-card',
+    name: 'Total Records',
+    dataPath: 'overview.totalRecords',
+    size: 'small',
+    position: { x: 0, y: 0 }
+  },
+  {
+    id: 'default-2',
+    type: 'rft-chart',
+    name: 'RFT Rate Trend',
+    size: 'medium',
+    position: { x: 1, y: 0 }
+  },
+  {
+    id: 'default-3',
+    type: 'issue-distribution',
+    name: 'Issue Distribution',
+    size: 'medium',
+    position: { x: 0, y: 1 }
+  }
+];
+
+// Available widgets catalog
+const widgetCatalog = [
+  { type: 'metric-card', name: 'Metric Card', size: 'small' },
+  { type: 'rft-chart', name: 'RFT Rate Chart', size: 'medium' },
+  { type: 'cycle-time-chart', name: 'Cycle Time Chart', size: 'medium' },
+  { type: 'issue-distribution', name: 'Issue Distribution', size: 'medium' },
+  { type: 'dept-performance', name: 'Department Performance', size: 'medium' }
+];
+
+export default Widgets;
+`);
+
+// Create UserSettings.js
+console.log('Creating UserSettings.js...');
+fs.writeFileSync(path.join(srcDir, 'UserSettings.js'), `
+import React, { useState, useEffect } from 'react';
+import { useStorageContext } from './StorageProvider';
+
+const UserSettings = () => {
+  const { getItem, setItem, isAvailable, getStorageUsage, clear } = useStorageContext();
+  
+  // Load settings from storage or use defaults
+  const [settings, setSettings] = useState(() => {
+    return getItem('user-settings', {
+      theme: 'light',
+      colorMode: 'default',
+      dataRefreshInterval: 5,
+      chartAnimations: true,
+      highContrastMode: false,
+      showHelp: true,
+      decimalPrecision: 1,
+      defaultTimeRange: '6m',
+      notificationsEnabled: true,
+      dashboardDensity: 'comfortable'
+    });
+  });
+  
+  const [activeTab, setActiveTab] = useState('appearance');
+  const [isSaved, setIsSaved] = useState(false);
+  const [storageInfo, setStorageInfo] = useState({ used: 0, total: 0, percentage: 0 });
+  
+  // Get storage info on mount
+  useEffect(() => {
+    if (isAvailable) {
+      setStorageInfo(getStorageUsage());
+    }
+  }, [isAvailable, getStorageUsage]);
+  
+  // Handle setting changes
+  const handleSettingChange = (key, value) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+    
+    // Reset saved status
+    setIsSaved(false);
+  };
+  
+  // Save settings
+  const saveSettings = () => {
+    setItem('user-settings', settings);
+    setIsSaved(true);
+    
+    // Update theme on body element
+    document.body.dataset.theme = settings.theme;
+    document.body.dataset.colorMode = settings.colorMode;
+    document.body.dataset.highContrast = settings.highContrastMode;
+    document.body.dataset.density = settings.dashboardDensity;
+    
+    // Show save confirmation briefly
+    setTimeout(() => {
+      setIsSaved(false);
+    }, 2000);
+    
+    // Update storage info
+    setStorageInfo(getStorageUsage());
+  };
+  
+  // Reset settings to defaults
+  const resetSettings = () => {
+    if (window.confirm('Reset all settings to default values?')) {
+      const defaultSettings = {
+        theme: 'light',
+        colorMode: 'default',
+        dataRefreshInterval: 5,
+        chartAnimations: true,
+        highContrastMode: false,
+        showHelp: true,
+        decimalPrecision: 1,
+        defaultTimeRange: '6m',
+        notificationsEnabled: true,
+        dashboardDensity: 'comfortable'
+      };
+      
+      setSettings(defaultSettings);
+      setItem('user-settings', defaultSettings);
+      setIsSaved(true);
+      
+      // Update theme on body element
+      document.body.dataset.theme = defaultSettings.theme;
+      document.body.dataset.colorMode = defaultSettings.colorMode;
+      document.body.dataset.highContrast = defaultSettings.highContrastMode;
+      document.body.dataset.density = defaultSettings.dashboardDensity;
+      
+      setTimeout(() => {
+        setIsSaved(false);
+      }, 2000);
+    }
+  };
+  
+  // Clear all stored data
+  const clearAllData = () => {
+    if (window.confirm('Are you sure you want to clear all stored data? This cannot be undone.')) {
+      clear();
+      window.location.reload();
+    }
+  };
+  
+  // If storage is not available, show a message
+  if (!isAvailable) {
+    return (
+      <div className="settings-container">
+        <div className="settings-header">
+          <h1>User Settings</h1>
+        </div>
+        
+        <div className="storage-error">
+          <div className="error-icon">⚠️</div>
+          <div className="error-content">
+            <h3>Local Storage Unavailable</h3>
+            <p>Your browser does not support or has disabled local storage. Settings cannot be saved.</p>
+            <p>Try enabling cookies and local storage in your browser settings, or try a different browser.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="settings-container">
+      <div className="settings-header">
+        <h1>User Settings</h1>
+        <div className="settings-actions">
+          {isSaved && <div className="save-indicator">Settings saved!</div>}
+          <button className="reset-button" onClick={resetSettings}>Reset to Default</button>
+          <button className="save-button" onClick={saveSettings} disabled={isSaved}>
+            {isSaved ? 'Saved' : 'Save Settings'}
+          </button>
+        </div>
+      </div>
+      
+      <div className="settings-content">
+        <div className="settings-sidebar">
+          <button 
+            className={\`sidebar-tab \${activeTab === 'appearance' ? 'active' : ''}\`}
+            onClick={() => setActiveTab('appearance')}
+          >
+            Appearance
+          </button>
+          <button 
+            className={\`sidebar-tab \${activeTab === 'data' ? 'active' : ''}\`}
+            onClick={() => setActiveTab('data')}
+          >
+            Data Preferences
+          </button>
+          <button 
+            className={\`sidebar-tab \${activeTab === 'notifications' ? 'active' : ''}\`}
+            onClick={() => setActiveTab('notifications')}
+          >
+            Notifications
+          </button>
+          <button 
+            className={\`sidebar-tab \${activeTab === 'storage' ? 'active' : ''}\`}
+            onClick={() => setActiveTab('storage')}
+          >
+            Storage
+          </button>
+        </div>
+        
+        <div className="settings-panel">
+          {/* Appearance Tab */}
+          {activeTab === 'appearance' && (
+            <div className="settings-group">
+              <h2>Appearance Settings</h2>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="theme">Theme</label>
+                  <div className="setting-description">
+                    Choose your preferred color scheme
+                  </div>
+                </div>
+                <div className="setting-control">
+                  <select 
+                    id="theme" 
+                    value={settings.theme}
+                    onChange={(e) => handleSettingChange('theme', e.target.value)}
+                  >
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="system">System Default</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="colorMode">Color Mode</label>
+                  <div className="setting-description">
+                    Set the color scheme for charts and visualizations
+                  </div>
+                </div>
+                <div className="setting-control">
+                  <select 
+                    id="colorMode" 
+                    value={settings.colorMode}
+                    onChange={(e) => handleSettingChange('colorMode', e.target.value)}
+                  >
+                    <option value="default">Default</option>
+                    <option value="colorblind">Colorblind-friendly</option>
+                    <option value="monochrome">Monochrome</option>
+                    <option value="vibrant">Vibrant</option>
+                    <option value="pastel">Pastel</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="dashboardDensity">Dashboard Density</label>
+                  <div className="setting-description">
+                    Adjust the spacing and density of dashboard elements
+                  </div>
+                </div>
+                <div className="setting-control">
+                  <select 
+                    id="dashboardDensity" 
+                    value={settings.dashboardDensity}
+                    onChange={(e) => handleSettingChange('dashboardDensity', e.target.value)}
+                  >
+                    <option value="comfortable">Comfortable</option>
+                    <option value="compact">Compact</option>
+                    <option value="cozy">Cozy</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="highContrastMode">High Contrast Mode</label>
+                  <div className="setting-description">
+                    Increase contrast for better readability
+                  </div>
+                </div>
+                <div className="setting-control toggle-control">
+                  <input 
+                    type="checkbox" 
+                    id="highContrastMode" 
+                    checked={settings.highContrastMode}
+                    onChange={(e) => handleSettingChange('highContrastMode', e.target.checked)}
+                  />
+                  <label htmlFor="highContrastMode" className="toggle-label"></label>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="chartAnimations">Chart Animations</label>
+                  <div className="setting-description">
+                    Enable or disable animations for charts and visualizations
+                  </div>
+                </div>
+                <div className="setting-control toggle-control">
+                  <input 
+                    type="checkbox" 
+                    id="chartAnimations" 
+                    checked={settings.chartAnimations}
+                    onChange={(e) => handleSettingChange('chartAnimations', e.target.checked)}
+                  />
+                  <label htmlFor="chartAnimations" className="toggle-label"></label>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Data Preferences Tab */}
+          {activeTab === 'data' && (
+            <div className="settings-group">
+              <h2>Data Preferences</h2>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="dataRefreshInterval">Data Refresh Interval (minutes)</label>
+                  <div className="setting-description">
+                    How often the dashboard data automatically refreshes
+                  </div>
+                </div>
+                <div className="setting-control">
+                  <select 
+                    id="dataRefreshInterval" 
+                    value={settings.dataRefreshInterval}
+                    onChange={(e) => handleSettingChange('dataRefreshInterval', Number(e.target.value))}
+                  >
+                    <option value="0">Never (Manual only)</option>
+                    <option value="1">1 minute</option>
+                    <option value="5">5 minutes</option>
+                    <option value="10">10 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="decimalPrecision">Decimal Precision</label>
+                  <div className="setting-description">
+                    Number of decimal places to display for numeric values
+                  </div>
+                </div>
+                <div className="setting-control">
+                  <select 
+                    id="decimalPrecision" 
+                    value={settings.decimalPrecision}
+                    onChange={(e) => handleSettingChange('decimalPrecision', Number(e.target.value))}
+                  >
+                    <option value="0">0 decimals</option>
+                    <option value="1">1 decimal</option>
+                    <option value="2">2 decimals</option>
+                    <option value="3">3 decimals</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="defaultTimeRange">Default Time Range</label>
+                  <div className="setting-description">
+                    Default time period for reports and charts
+                  </div>
+                </div>
+                <div className="setting-control">
+                  <select 
+                    id="defaultTimeRange" 
+                    value={settings.defaultTimeRange}
+                    onChange={(e) => handleSettingChange('defaultTimeRange', e.target.value)}
+                  >
+                    <option value="1m">1 Month</option>
+                    <option value="3m">3 Months</option>
+                    <option value="6m">6 Months</option>
+                    <option value="12m">12 Months</option>
+                    <option value="ytd">Year to Date</option>
+                    <option value="all">All Time</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Notifications Tab */}
+          {activeTab === 'notifications' && (
+            <div className="settings-group">
+              <h2>Notification Settings</h2>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="notificationsEnabled">Enable Notifications</label>
+                  <div className="setting-description">
+                    Show system notifications for important events
+                  </div>
+                </div>
+                <div className="setting-control toggle-control">
+                  <input 
+                    type="checkbox" 
+                    id="notificationsEnabled" 
+                    checked={settings.notificationsEnabled}
+                    onChange={(e) => handleSettingChange('notificationsEnabled', e.target.checked)}
+                  />
+                  <label htmlFor="notificationsEnabled" className="toggle-label"></label>
+                </div>
+              </div>
+              
+              <div className="setting-item">
+                <div className="setting-label">
+                  <label htmlFor="showHelp">Show Help Tips</label>
+                  <div className="setting-description">
+                    Display tooltips and help information throughout the application
+                  </div>
+                </div>
+                <div className="setting-control toggle-control">
+                  <input 
+                    type="checkbox" 
+                    id="showHelp" 
+                    checked={settings.showHelp}
+                    onChange={(e) => handleSettingChange('showHelp', e.target.checked)}
+                  />
+                  <label htmlFor="showHelp" className="toggle-label"></label>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Storage Tab */}
+          {activeTab === 'storage' && (
+            <div className="settings-group">
+              <h2>Storage Management</h2>
+              
+              <div className="storage-info">
+                <h3>Local Storage Usage</h3>
+                <div className="storage-progress-container">
+                  <div 
+                    className="storage-progress-bar" 
+                    style={{ width: \`\${Math.min(storageInfo.percentage, 100)}%\` }}
+                  ></div>
+                </div>
+                <div className="storage-details">
+                  <span>{(storageInfo.used / 1024).toFixed(2)} KB used</span>
+                  <span>of {(storageInfo.total / (1024 * 1024)).toFixed(2)} MB available</span>
+                </div>
+              </div>
+              
+              <div className="storage-actions">
+                <button className="clear-data-button" onClick={clearAllData}>
+                  Clear All Stored Data
+                </button>
+                <p className="clear-data-warning">
+                  This will reset all settings, preferences, and local data. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UserSettings;
 `);
 
 // Create additional files to make sure all dependencies are met
