@@ -1677,4 +1677,402 @@ input:checked + .toggle-slider:before {
 .marker-label {
   font-size: 10px;
   color: #6b7280;
+}
+
+/* ======= Process Flow Visualization Styles ======= */
+.process-flow-container {
+  padding: 20px;
+}
+
+.process-flow-header {
+  margin-bottom: 24px;
+}
+
+.process-flow-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.process-flow-timeline-container {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.process-flow-visualization {
+  position: relative;
+  padding-top: 20px;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.timeline-start, .timeline-end {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.timeline-scale {
+  height: 30px;
+  display: flex;
+  position: relative;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.timeline-marker {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.timeline-tick {
+  height: 8px;
+  width: 1px;
+  background-color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.timeline-label {
+  font-size: 12px;
+  color: #6b7280;
+  transform: translateX(-50%);
+}
+
+.process-steps {
+  position: relative;
+  padding-bottom: 40px;
+}
+
+.process-step-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.process-step-block {
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  padding: 12px;
+  position: absolute;
+  height: 60px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.process-step-block:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.process-step-block.bottleneck {
+  background-color: #fee2e2;
+  border: 1px dashed #ef4444;
+}
+
+.process-step-block.expanded {
+  height: auto;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.step-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.step-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.step-time {
+  font-size: 14px;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trend-indicator {
+  font-size: 12px;
+}
+
+.trend-indicator.increasing {
+  color: #ef4444;
+}
+
+.trend-indicator.decreasing {
+  color: #10b981;
+}
+
+.trend-indicator.stable {
+  color: #6b7280;
+}
+
+.step-target-bar {
+  height: 4px;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+  position: relative;
+  margin-top: 8px;
+}
+
+.step-target-marker {
+  position: absolute;
+  height: 8px;
+  width: 2px;
+  background-color: #00518A;
+  top: -2px;
+}
+
+.bottleneck-indicator {
+  font-size: 11px;
+  color: #ef4444;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.step-variation-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.variation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.variation-dot.low {
+  background-color: #10b981;
+}
+
+.variation-dot.medium {
+  background-color: #f59e0b;
+}
+
+.variation-dot.high {
+  background-color: #ef4444;
+}
+
+.step-details-panel {
+  position: relative;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 70px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.step-details-content h3 {
+  font-size: 16px;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.step-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.step-metric {
+  background-color: #f9fafb;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.metric-name {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.step-recommendations h4 {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.recommendations-list {
+  padding-left: 16px;
+  margin: 0;
+}
+
+.recommendations-list li {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.process-flow-instructions {
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+/* ======= Lot Analytics Dashboard Styles ======= */
+.lot-analytics-container {
+  padding: 20px;
+}
+
+.lot-analytics-header {
+  margin-bottom: 24px;
+}
+
+.lot-analytics-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.lot-analytics-dashboard {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 24px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.lot-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.lot-metric-card {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.lot-metric-card h3 {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.lot-metric-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.lot-metric-trend {
+  font-size: 12px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lot-metric-trend.positive {
+  color: #10b981;
+}
+
+.lot-metric-trend.negative {
+  color: #ef4444;
+}
+
+.lot-metric-trend.neutral {
+  color: #6b7280;
+}
+
+.lot-detail-section {
+  margin-top: 30px;
+}
+
+.lot-detail-section h2 {
+  font-size: 18px;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.lot-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.lot-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.lot-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+}
+
+.lot-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.lot-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.lot-status.complete {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.lot-status.in-progress {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.lot-status.on-hold {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.lot-status.rejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.placeholder-content {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
 } 
